@@ -4,3 +4,6 @@
 
 # LangGraph
 .langgraph_api/
+
+# Environment
+*.env

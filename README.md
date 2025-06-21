@@ -5,7 +5,7 @@
 ![LangGraph](https://img.shields.io/badge/LangGraph-Orchestration-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-**AFIE is a sophisticated, multi-agent AI system designed to act as an expert development partner for building games with Python and the Ursina Engine.**
+**AFIE is a multi-agent AI system designed to act as an expert development partner for building games with Python and the Ursina Engine.**
 
 It is not a "game-from-prompt" generator; it is a system that accelerates development by automating the planning, architecture, and documentation phases, allowing a human developer to focus on creative ideas, implementation, and playtesting.
 
@@ -42,21 +42,6 @@ The AFIE is composed of three main layers: **Core Infrastructure**, **Specialist
 - **The Codebase:** The single source of truth.
 - **Architectural Decision Record (ADR):** A directory of Markdown files tracking key architectural choices.
 - **Composite Feature Implementation Package (FIP):** The final, structured recipe delivered to the human developer.
-
-## Getting Started
-
-*(This section will be filled out as you build the project)*
-
-1.  **Installation:**
-    ```bash
-    git clone https://github.com/your-username/afie.git
-    cd afie
-    pip install -r requirements.txt
-    ```
-2.  **Configuration:**
-    - Set up your `.env` file with the necessary API keys (e.g., `OPENAI_API_KEY`).
-3.  **Running the System:**
-    - *(Instructions on how to initialize a project and submit a feature request will go here.)*
 
 ## Development Roadmap
 

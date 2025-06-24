@@ -2,6 +2,14 @@
 # website: https://www.langchain.com/
 # website: https://www.langchain.com/langgraph
 
+# Jupter Notebooks
+*.ipynb_checkpoints
+*.ipynb
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
 # LangGraph
 .langgraph_api/
 

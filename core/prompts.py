@@ -2,10 +2,12 @@ from langchain.prompts import PromptTemplate
 
 """
 prompts.py
-==========
+##########
 
 This module contains custom prompt templates for the AFIE application.
 It also includes necessary imports from LangChain for prompt creation and management.
+
+This module cannot import from other modules in this package to avoid circular dependencies.
 """
 
 # Imports
@@ -45,14 +47,14 @@ Your final output MUST be a single, valid JSON object and nothing else. Do not i
 
 The required JSON schema is:
 ```json
-{
+{{
   "description": "A concise, informative summary of the feature, max 120 words.",
   "keywords": [
     "keyword1",
     "keyword2",
     "keyword3"
   ]
-}
+}}
 ```
 
 **Example 1: A feature that is only in the "Requested" stage.**
@@ -67,7 +69,7 @@ ADR Content:
 
 *Expected Output:*
 ```json
-{
+{{
   "description": "Defines a requested player ability for a short-duration dash in the forward direction. The feature is intended to consume stamina and be governed by a 2-second cooldown period. This feature would grant the player enhanced mobility for evasive maneuvers or quick repositioning.",
   "keywords": [
     "dash",
@@ -77,7 +79,7 @@ ADR Content:
     "stamina",
     "cooldown"
   ]
-}
+}}
 ```
 
 **Example 2: A feature that has been fully "Implemented".**
@@ -92,7 +94,7 @@ ADR Content: "Implemented the dash ability by adding a 'perform_dash' method to 
 
 *Expected Output:*
 ```json
-{
+{{
   "description": "Implements a player dash ability via a 'perform_dash' method in the PlayerController, using the Ursina engine's animate_position function for smooth movement. This ability consumes 15 stamina and is managed by a 2-second global cooldown timer located in the UIManager. This provides a core mobility mechanic for the player.",
   "keywords": [
     "dash",
@@ -105,6 +107,6 @@ ADR Content: "Implemented the dash ability by adding a 'perform_dash' method to 
     "animate_position",
     "UIManager"
   ]
-}
+}}
 ```
 """)

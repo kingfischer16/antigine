@@ -2,9 +2,12 @@ from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmb
 
 """
 models.py
+#########
 
 Central reference for AI chat models and embedding models used in the project.
 Instantiates the Google Generative AI chat model and embedding model for use in the application.
+
+This module cannot import from other modules in this package to avoid circular dependencies.
 """
 
 # Imports

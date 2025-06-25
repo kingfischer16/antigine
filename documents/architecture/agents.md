@@ -11,7 +11,7 @@ The agents of AFIE, and how they will be used.
 
 ## **`ProductionManager`**
  * **Type:** Agent with tools
- * **Role:** Interfaces with the human user to discuss and develop the user's idea for a new feature. This agent ensures that the user's feature description is complete and is not a replication of an existing feature before submitting it to the Technical Architect, once the human approved of the feature request description. This agent also classifies whether this is a new feature, an update to an existing feature, or a bugfix.
+ * **Role:** Interfaces with the human user to discuss and develop the user's idea for a new feature. This agent ensures that the user's feature description is complete and is not a replication of an existing feature before submitting it to the Technical Architect, once the human approved of the feature request description. This agent also classifies whether this is a new feature, an update to an existing feature, or a bugfix. *Implementation of this manager is on hold.*
  * **Input:** Discussion with user.
  * **Output:** Feature request.
  * **Tools:** `FeatureRequestHistory`, `ArchtecturalDecisionRecord`

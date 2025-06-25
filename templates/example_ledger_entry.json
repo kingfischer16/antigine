@@ -1,0 +1,44 @@
+{
+  "FEAT-007": {
+    "type": "new_feature",
+    "status": "validated",
+    "summary": {
+      "title": "Player Dash Ability",
+      "description": "Implements a player dash ability via a 'perform_dash' method in the PlayerController, using the Ursina engine's animate_position function. This ability consumes 15 stamina and is managed by a 2-second global cooldown timer.",
+      "keywords": [
+        "dash",
+        "sprint",
+        "player ability",
+        "movement",
+        "stamina",
+        "cooldown",
+        "PlayerController"
+      ]
+    },
+    "dates": {
+      "created": "2024-05-23T10:00:00Z",
+      "fip_approved": "2024-05-23T14:30:00Z",
+      "implemented": "2024-05-24T09:15:00Z",
+      "validated": "2024-05-24T09:45:00Z",
+      "superseded": null
+    },
+    "artifacts": {
+      "request": "./FEAT-007/request.md",
+      "fip": "./FEAT-007/fip.md",
+      "adr": "./FEAT-007/adr.md"
+    },
+    "relations": [
+      {
+        "type": "builds_on",
+        "target_id": "FEAT-002"
+      }
+    ],
+    "implementation": {
+      "commit_hash": "a1b2c3d4e5f6a1b2c3d4e5f6",
+      "changed_files": [
+        "src/player.py",
+        "src/input_handler.py"
+      ]
+    }
+  }
+}

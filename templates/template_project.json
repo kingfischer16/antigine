@@ -1,0 +1,13 @@
+{
+    "project_name": "My Project",
+    "project_initials": "MP",
+    "project_description": "This is a sample project template.",
+    "project_version": "0.0.0",
+    "project_repository_url": "https://github...",
+    "project_language": "Python",
+    "engine_name": "Ursina Engine",
+    "engine_repository_url": "https://github.com/pokepetter/ursina",
+    "engine_documentation_url": "https://www.ursinaengine.org/documentation.html",
+    "engine_api_reference_url": "https://www.ursinaengine.org/api_reference.html",
+    "engine_examples_url": "https://www.ursinaengine.org/samples.html"
+}

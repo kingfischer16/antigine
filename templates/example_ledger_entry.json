@@ -34,8 +34,8 @@
     "implementation": {
       "commit_hash": "a1b2c3d4e5f6a1b2c3d4e5f6",
       "changed_files": [
-        "src/player.py",
-        "src/input_handler.py"
+        "source/player.py",
+        "source/input_handler.py"
       ]
     }
   }

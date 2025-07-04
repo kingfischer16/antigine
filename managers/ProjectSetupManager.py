@@ -34,6 +34,22 @@ class ProjectSetupManager:
         # This folder is used to store project-specific data.
         afie_folder = os.path.join(self.game_project_folder, ".afie")
         os.makedirs(afie_folder, exist_ok=True)
+        # Create the rest of the folders
+        folders_to_create = [
+            "assets",
+            "assets/images",
+            "assets/sounds",
+            "assets/meshes",
+            "assets/textures"
+            "levels",
+            "scripts",
+            "data",
+            "logs",
+            "source"
+        ]
+        for folder in folders_to_create:
+            folder_path = os.path.join(self.game_project_folder, folder)
+            os.makedirs(folder_path, exist_ok=True)
 
         # Copy the 'template_project.json' file from the afie templates folder in this module to
         # the .afie folder in the game_project_folder, and rename it to 'project.json'.

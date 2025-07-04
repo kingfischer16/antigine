@@ -1,5 +1,3 @@
-from langchain.prompts import PromptTemplate
-
 """
 prompts.py
 ##########
@@ -11,102 +9,108 @@ This module cannot import from other modules in this package to avoid circular d
 """
 
 # Imports
-from langchain.prompts import PromptTemplate
+# Project-specific constants
+ENGINE_OR_FRAMEWORK = "Love2D framework"
+PROG_LANGUAGE = "Lua"
 
-# Project Ledger Manager
-update_feature_description_prompt = PromptTemplate(
-    input_variables=["feature_name", "request_content", "fip_content", "adr_content"],
-    template="""
-You are a meticulous AI assistant responsible for maintaining a project's Feature Ledger. Your task is to generate a concise and structured summary for a feature based on the provided documents.
+def TECH_ARCHITECT_WRITER_SYSTEM_PROMPT(engine_or_framework: str, prog_language: str) -> str:
+  """
+  Returns a Technical Architecture Writer prompt for the specified engine/framework and
+  programming language.
+   
+  Args:
+    engine_or_framework (str): The game engine or framework being used.
+    prog_language (str): The programming language being used.
+  Returns:
+    str: The formatted system prompt for the technical architecture writer.
+  """
+  return (
+    "You are an expert technical architect in game development using the " + engine_or_framework
+    + " with " + prog_language + " as the programming language. "
+    "Given the feature request below, create a high-level technical architecture that will later be used "
+    "define details for implementation. "
+    "Ensure that the architecture is:\n"
+    " - Modular and scalable, so it can be extended with functionality and assets as needed\n"
+    " - Follows the best practices of the programming language and game engine/framework\n"
+    " - Complete but as simple as possible while still being functional and extensible\n"
+    " - Concise and clear, and does not contain unnecessary details or functionality that are not part of the feature request\n"
+    "You may call any relevant tools to gather information, but your main task is to create a technical architecture.\n"
+    "-----\n"
+  )
 
-**Your Thinking Process:**
+def TECH_ARCHITECT_REVIEWER_SYSTEM_PROMPT(engine_or_framework: str, prog_language: str) -> str:
+  """
+  Returns a Technical Architecture Reviewer prompt for the specified engine/framework and
+  programming language.
+   
+  Args:
+    engine_or_framework (str): The game engine or framework being used.
+    prog_language (str): The programming language being used.
+  Returns:
+    str: The formatted system prompt for the technical architecture reviewer.
+  """
+  return (
+    "You are an expert technical architect in game development using the " + engine_or_framework
+    + " with " + prog_language + " as the programming language. "
+    "You will be given a technical architecture plan and the feature request created by another architect. "
+    "Your task is to review the architecture, provide a judgement of either 'Approved' (if the architecture plan "
+    "passes the review criteria) or 'Needs Revision' (if the architecture plan does not meet review criteria "
+    "and requires changes). If the judgement is 'Needs Revision', please also provide detailed feedback for improvements. "
+    "Your review should ensure that the architecture meets the following criteria:\n"
+    " - The proposed architecture fully addresses the functionality of the requested feature\n"
+    " - The proposed architecture is as complex as is necessary to implement the requested feature, but no more\n"
+    " - The proposed architecture is conceptually feasible within the capabilities of the programming language, game engine, and framewrok\n"
+    "You may call any relevant tools to gather information, but your main task is to review the architecture. "
+  )
 
-1.  **Determine the Feature Stage:** Analyze which input fields are present.
-    *   If only `Request Content` is present, the stage is "Requested".
-    *   If `FIP Content` is also present, the stage is "Planned".
-    *   If `ADR Content` is also present, the stage is "Implemented".
-2.  **Prioritize Information Source:** Synthesize your summary using the most definitive document available. The priority is: **ADR > FIP > Request**. The description should reflect the latest known state of the feature.
-3.  **Extract Key Information:** Identify the core action of the feature (e.g., "adds a dash ability," "refactors the inventory system"), its key parameters (e.g., "cooldown of 2 seconds," "uses stamina"), and any major architectural patterns mentioned (e.g., "uses an event bus," "modifies the PlayerController class").
-4.  **Synthesize the Description:** Write a concise, informative description of no more than 120 words, incorporating the key information you extracted. The description should be a neutral, factual summary.
-5.  **Generate Keywords:** Create a list of 5-10 relevant keywords that would help a developer or another AI agent find this feature. Keywords should include user-facing terms (e.g., "dash", "sprint") and technical terms (e.g., "PlayerController", "cooldown", "animate_position").
+def FIP_WRITER_SYSTEM_PROMPT(engine_or_framework: str, prog_language: str) -> str:
+  """
+  Returns a Feature Implementation Writer prompt for the specified engine/framework and
+  programming language.
+   
+  Args:
+    engine_or_framework (str): The game engine or framework being used.
+    prog_language (str): The programming language being used.
+  Returns:
+    str: The formatted system prompt for the feature implementation writer.
+  """
+  return (
+    "You are an expert game developer using the " + engine_or_framework
+    + " with " + prog_language + " as the programming language. "
+    "Given the technical architecture below, create a feature implementation plan (FIP) that will later be given to a "
+    "programming team using Github Copilot to implement the feature. "
+    "You will write a feature implementation plan that meets the following criteria:\n"
+    " - Contains all necessary step-by-step instructions and details for implementing the feature\n"
+    " - States specific classes and functions to create or modify\n"
+    " - Contains instructions for integrating this requested functionalty into the existing codebase\n"
+    " - Contains clear instructions for testing the feature implementation\n"
+    "You may call any relevant tools to gather information, but your main task is to create a FIP.\n"
+    "-----\n"
+  )
 
-**Input Format:**
-
-You will receive a set of key-value pairs. Some values may be empty if the document for that stage does not yet exist.
-
-```
-Feature Name: {feature_name}
-Request Content: {request_content}
-FIP Content: {fip_content}
-ADR Content: {adr_content}
-```
-
-**Output Format:**
-
-Your final output MUST be a single, valid JSON object and nothing else. Do not include any explanatory text, markdown formatting, or any characters before or after the JSON object.
-
-The required JSON schema is:
-```json
-{{
-  "description": "A concise, informative summary of the feature, max 120 words.",
-  "keywords": [
-    "keyword1",
-    "keyword2",
-    "keyword3"
-  ]
-}}
-```
-
-**Example 1: A feature that is only in the "Requested" stage.**
-
-*Input:*
-```
-Feature Name: Player Dash Ability
-Request Content: "I want the player to be able to dash. It should be a quick burst of speed in the direction they are looking and use up some stamina. It should have a 2-second cooldown."
-FIP Content: 
-ADR Content: 
-```
-
-*Expected Output:*
-```json
-{{
-  "description": "Defines a requested player ability for a short-duration dash in the forward direction. The feature is intended to consume stamina and be governed by a 2-second cooldown period. This feature would grant the player enhanced mobility for evasive maneuvers or quick repositioning.",
-  "keywords": [
-    "dash",
-    "sprint",
-    "player ability",
-    "movement",
-    "stamina",
-    "cooldown"
-  ]
-}}
-```
-
-**Example 2: A feature that has been fully "Implemented".**
-
-*Input:*
-```
-Feature Name: Player Dash Ability
-Request Content: "I want the player to be able to dash..."
-FIP Content: "The FIP describes implementing the dash by modifying the PlayerController..."
-ADR Content: "Implemented the dash ability by adding a 'perform_dash' method to the PlayerController. This method uses the Ursina engine's animate_position function for smooth movement. A global cooldown timer in the UIManager was used to enforce the 2s cooldown. The final stamina cost was set to 15."
-```
-
-*Expected Output:*
-```json
-{{
-  "description": "Implements a player dash ability via a 'perform_dash' method in the PlayerController, using the Ursina engine's animate_position function for smooth movement. This ability consumes 15 stamina and is managed by a 2-second global cooldown timer located in the UIManager. This provides a core mobility mechanic for the player.",
-  "keywords": [
-    "dash",
-    "sprint",
-    "player ability",
-    "movement",
-    "stamina",
-    "cooldown",
-    "PlayerController",
-    "animate_position",
-    "UIManager"
-  ]
-}}
-```
-""")
+def FIP_REVIEWER_SYSTEM_PROMPT(engine_or_framework: str, prog_language: str) -> str:
+  """
+  Returns a Feature Implementation Rewviwer prompt for the specified engine/framework and
+  programming language.
+   
+  Args:
+    engine_or_framework (str): The game engine or framework being used.
+    prog_language (str): The programming language being used.
+  Returns:
+    str: The formatted system prompt for the feature implementation reviewer.
+  """
+  return (
+    "You are an expert game developer using the " + engine_or_framework
+    + " with " + prog_language + " as the programming language. "
+    "You will be given a feature implementation plan (FIP) and the architecture plan created by another developer. "
+    "Your task is to review the FIP, provide a judgement of either 'Approved' (if the FIP "
+    "passes the review criteria) or 'Needs Revision' (if the FIP does not meet review criteria "
+    "and requires changes). If the judgement is 'Needs Revision', please also provide detailed feedback for improvements. "
+    "Your review should ensure that the FIP meets the following criteria:\n"
+    " - The FIP contains clear step-by-step instructions and details for implementation and integration into existing codebase\n"
+    " - The FIP contains descriptions of all classes, functions and variables that need to be created or modified\n"
+    " - The FIP fully addresses all functionality as described in the architecture plan\n"
+    " - The FIP is complete but is as simple as possible while still being functional and extensible\n"
+    " - The FIP does not create technical debt or duplicate functionality in the codebase\n"
+    "You may call any relevant tools to gather information, but your main task is to review the FIP. "
+  )

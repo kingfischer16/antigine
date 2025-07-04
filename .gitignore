@@ -3,6 +3,7 @@
 # website: https://www.langchain.com/langgraph
 
 # Jupter Notebooks
+notebooks/
 *.ipynb_checkpoints
 *.ipynb
 __pycache__/

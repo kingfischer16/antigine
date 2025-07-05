@@ -30,10 +30,10 @@ class ProjectSetupManager:
         if not os.path.isdir(self.game_project_folder):
             raise FileNotFoundError(f"Expected directory does not exist: {self.game_project_folder}")
 
-        # Creates the .afie folder in the game project folder.
+        # Creates the .antigine folder in the game project folder.
         # This folder is used to store project-specific data.
-        afie_folder = os.path.join(self.game_project_folder, ".afie")
-        os.makedirs(afie_folder, exist_ok=True)
+        antigine_folder = os.path.join(self.game_project_folder, ".antigine")
+        os.makedirs(antigine_folder, exist_ok=True)
         # Create the rest of the folders
         folders_to_create = [
             "assets",
@@ -51,12 +51,12 @@ class ProjectSetupManager:
             folder_path = os.path.join(self.game_project_folder, folder)
             os.makedirs(folder_path, exist_ok=True)
 
-        # Copy the 'template_project.json' file from the afie templates folder in this module to
-        # the .afie folder in the game_project_folder, and rename it to 'project.json'.
+        # Copy the 'template_project.json' file from the antigine templates folder in this module to
+        # the .antigine folder in the game_project_folder, and rename it to 'project.json'.
         template_project_path = os.path.join(os.path.dirname(__file__), "templates", "template_project.json")
         if not os.path.isfile(template_project_path):
             raise FileNotFoundError(f"Template project file does not exist: {template_project_path}")
-        project_file_path = os.path.join(afie_folder, "project.json")
+        project_file_path = os.path.join(antigine_folder, "project.json")
         with open(template_project_path, "r", encoding="utf-8") as template_file:
             project_data = json.load(template_file)
         with open(project_file_path, "w", encoding="utf-8") as project_file:
@@ -69,8 +69,8 @@ class ProjectSetupManager:
         field (str): The field to edit in the project.json file.
         data (str): The data to set for the field.
         """
-        afie_folder = os.path.join(self.game_project_folder, ".afie")
-        project_file_path = os.path.join(afie_folder, "project.json")
+        antigine_folder = os.path.join(self.game_project_folder, ".antigine")
+        project_file_path = os.path.join(antigine_folder, "project.json")
 
         if not os.path.isfile(project_file_path):
             raise FileNotFoundError(f"Project file does not exist: {project_file_path}")
@@ -87,11 +87,11 @@ class ProjectSetupManager:
         """
         Creates an empty ledger folder and file for the project.
         """
-        afie_folder = os.path.join(self.game_project_folder, ".afie")
-        if not os.path.isdir(afie_folder):
-            raise FileNotFoundError(f"Expected directory does not exist: {afie_folder}")
+        antigine_folder = os.path.join(self.game_project_folder, ".antigine")
+        if not os.path.isdir(antigine_folder):
+            raise FileNotFoundError(f"Expected directory does not exist: {antigine_folder}")
 
-        ledger_folder = os.path.join(afie_folder, "ledger")
+        ledger_folder = os.path.join(antigine_folder, "ledger")
         os.makedirs(ledger_folder, exist_ok=True)
 
         ledger_file_path = os.path.join(ledger_folder, "ledger.json")

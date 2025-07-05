@@ -2,7 +2,7 @@
 prompts.py
 ##########
 
-This module contains custom prompt templates for the AFIE application.
+This module contains custom prompt templates for the Antigine application.
 It also includes necessary imports from LangChain for prompt creation and management.
 
 This module cannot import from other modules in this package to avoid circular dependencies.

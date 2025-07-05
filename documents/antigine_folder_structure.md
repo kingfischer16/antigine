@@ -1,14 +1,16 @@
-# AFIE Repository Structure
+# Antigine Repository Structure
 
 ```
-afie/
+antigine/
 ├── README.md
 ├── requirements.txt
 ├── pyproject.toml
 ├── .env.example
 ├── .gitignore
+├── .devcontainer
+│   └── devcontainer.json   
 │
-├── afie/                           # Main package
+├── antigine/                       # Main package
 │   ├── __init__.py
 │   ├── main.py                     # Entry point / CLI
 │   └── config.py                   # Configuration management
@@ -88,14 +90,6 @@ afie/
 │   ├── parsing_utils.py            # Tree-sitter parsing utilities
 │   ├── vector_store_utils.py       # Vector store operations
 │   └── logging_utils.py            # Logging configuration
-│
-├── data/                           # Static data and knowledge bases
-│   ├── ursina_docs/                # Ursina documentation files
-│   ├── vector_stores/              # Persistent vector stores
-│   │   ├── engine_docs.db
-│   │   ├── engine_api.db
-│   │   └── engine_code.db
-│   └── examples/                   # Example projects/ADRs
 │
 ├── tests/                          # Test suite
 │   ├── __init__.py

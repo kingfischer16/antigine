@@ -1,5 +1,5 @@
 # Agents
-The agents of AFIE, and how they will be used.
+The agents of Antigine, and how they will be used.
 
 ## **`ProjectScaffolder`** (a.k.a. Initiation Agent)
  * **Type:** Agent with tools
@@ -51,7 +51,7 @@ The agents of AFIE, and how they will be used.
 
 ## **`StateManager`**
  * **Type:** Manager
- * **Role:** Manage the flow of work through the graph of AFIE.
+ * **Role:** Manage the flow of work through the graph of Antigine.
  * **Input:**
  * **Output:**
  * **Tools:**

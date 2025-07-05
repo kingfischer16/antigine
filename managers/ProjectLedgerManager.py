@@ -22,8 +22,8 @@ class ProjectLedgerManager:
         """
         # Create instance attributes
         self.project_folder = project_folder
-        self.ledger_path = os.path.join(self.project_folder, ".afie", "ledger.json")
-        project_file_path = os.path.join(self.project_folder, ".afie", "project.json")
+        self.ledger_path = os.path.join(self.project_folder, ".antigine", "ledger.json")
+        project_file_path = os.path.join(self.project_folder, ".antigine", "project.json")
         # Load the ledger data from the JSON file into memory
         with open(self.ledger_path, 'r') as f:
             self.ledger_data = json.load(f) # This is our in-memory dictionary

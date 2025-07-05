@@ -1,2 +1,2 @@
 # Architecture
-Collection of documents describing the components of AFIE.
+Collection of documents describing the components of Antigine.

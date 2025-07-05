@@ -1,5 +1,5 @@
 # Retrieval-Agumentend Generative (RAG) Systems
-A collection of RAG systems to be used by the agents in AFIE. 
+A collection of RAG systems to be used by the agents in Antigine. 
 
 ## Components
 All RAG systems contain the following components:
@@ -15,10 +15,10 @@ All RAG systems contain the following components:
 | `Exporter` | Takes the retrieved documents and packages them as a single block of text, with some brief preamble to assist interpretation. | Dedicated code to concatenate and augment documents. |
 
 ## Systems
-The following is a collection of the RAG systems that will be implemented in the AFIE system:
+The following is a collection of the RAG systems that will be implemented in the Antigine system:
 
 ### **`ProjectContextManager`**
-Provides AFIE agents with relevant segments of code from the codebase of the game.
+Provides Antigine agents with relevant segments of code from the codebase of the game.
  * `SourceData`: The codebase of the game project, stored and maintained in a local GitHub repo.
  * `SplittingStrategy`: Semantic or file-based. Files under 150 lines should be vectorized as they are, while larger files will need to be split at contextually convenient points, e.g. classes, functions, methods. Splitting of classes will have to ensure context to the rest of the class is maintained.
  * `EmbeddingModel`: TBD, likely a standard model.
@@ -28,7 +28,7 @@ Provides AFIE agents with relevant segments of code from the codebase of the gam
  * `Exporter`: TBD, custom code.
 
  ### **`FeatureRequestHistory`**
-The collection of feature requests that are input to the AFIE process. These are the features described by the human operator (and potentially a chat agent e.g. "production manager") and used as input to the technical architect to being the process of creating a FIP.
+The collection of feature requests that are input to the Antigine process. These are the features described by the human operator (and potentially a chat agent e.g. "production manager") and used as input to the technical architect to being the process of creating a FIP.
  * `SourceData`: Collection of markdown files, each file representing an approved feature request.
  * `SplittingStrategy`: File-based.
  * `EmbeddingModel`: TBD, likely a standard model.
@@ -38,8 +38,8 @@ The collection of feature requests that are input to the AFIE process. These are
  * `Exporter`: TBD, custom code.
 
  ### **`FeatureImplementationPackageCollection`**
-The collection of FIPs that have been produced by AFIE.
- * `SourceData`: Collection of markdown files of FIPs as produced, reviewed, and approved in AFIE.
+The collection of FIPs that have been produced by Antigine.
+ * `SourceData`: Collection of markdown files of FIPs as produced, reviewed, and approved in Antigine.
  * `SplittingStrategy`: File-based.
  * `EmbeddingModel`: TBD, likely a standard model.
  * `VectorStore`: Chroma DB.
@@ -48,7 +48,7 @@ The collection of FIPs that have been produced by AFIE.
  * `Exporter`: TBD, custom code.
 
  ### **`ArchitecturalDecisionRecord`**
-The collection of summaries of architectural decisions that have been implemented. This does not contain all the details of the FIP, but rather is intended to be a summary of each feature after it is implemented and validated so AFIE can more easily understand the state of the game. Consider if this can be merged with the Feature Request History in a sensible way, or if one or the other is redundant.
+The collection of summaries of architectural decisions that have been implemented. This does not contain all the details of the FIP, but rather is intended to be a summary of each feature after it is implemented and validated so Antigine can more easily understand the state of the game. Consider if this can be merged with the Feature Request History in a sensible way, or if one or the other is redundant.
  * `SourceData`: Collection of markdown files of architectural decisions.
  * `SplittingStrategy`: File-based.
  * `EmbeddingModel`: TBD, likely a standard model.

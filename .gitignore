@@ -3,9 +3,9 @@
 # website: https://www.langchain.com/langgraph
 
 # Jupter Notebooks
-notebooks/
+#notebooks/
 *.ipynb_checkpoints
-*.ipynb
+#*.ipynb
 __pycache__/
 *.pyc
 *.pyo

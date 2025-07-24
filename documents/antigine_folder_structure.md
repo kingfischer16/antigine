@@ -8,7 +8,9 @@ antigine/
 ├── .env.example
 ├── .gitignore
 ├── .devcontainer
-│   └── devcontainer.json   
+│   └── devcontainer.json
+├── .claude                         # Claude Code instructions and config
+│   └── claude.md
 │
 ├── antigine/                       # Main package
 │   ├── __init__.py

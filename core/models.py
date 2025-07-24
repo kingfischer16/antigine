@@ -15,7 +15,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGener
 
 # Model names to use
 EMBEDDING_MODEL_NAME = "gemini-embedding-001"
-GEMINI_CHAT_MODEL_NAME = "gemini-2.5-flash-lite-preview-06-17" # "gemini-2.5-flash-lite-latest"
+GEMINI_CHAT_MODEL_NAME = "gemini-2.5-flash-lite" # "gemini-2.5-flash-lite-latest"
 
 # Variables
 CHAT_MODEL_TEMPERATEURE = 0.2  # Temperature for the chat model, controlling randomness in responses

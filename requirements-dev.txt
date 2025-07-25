@@ -1,3 +1,4 @@
+ipython
 langchain-core
 langchain-openai
 langchain-google-genai

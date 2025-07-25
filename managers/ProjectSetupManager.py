@@ -85,15 +85,14 @@ class ProjectSetupManager:
         
     def create_empty_ledger(self) -> None:
         """
-        Creates an empty ledger folder and file for the project.
+        Creates an empty SQLite ledger database for the project.
         """
+        from core.database import initialize_database
+        
         antigine_folder = os.path.join(self.game_project_folder, ".antigine")
         if not os.path.isdir(antigine_folder):
             raise FileNotFoundError(f"Expected directory does not exist: {antigine_folder}")
 
-        ledger_folder = os.path.join(antigine_folder, "ledger")
-        os.makedirs(ledger_folder, exist_ok=True)
-
-        ledger_file_path = os.path.join(ledger_folder, "ledger.json")
-        with open(ledger_file_path, "w", encoding="utf-8") as f:
-            json.dump({}, f)
+        # Create SQLite database with proper schema
+        ledger_db_path = os.path.join(antigine_folder, "ledger.db")
+        initialize_database(ledger_db_path)

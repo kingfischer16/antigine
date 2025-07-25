@@ -9,9 +9,6 @@ This module cannot import from other modules in this package to avoid circular d
 """
 
 # Imports
-# Project-specific constants
-ENGINE_OR_FRAMEWORK = "Love2D framework"
-PROG_LANGUAGE = "Lua"
 
 def TECH_ARCHITECT_WRITER_SYSTEM_PROMPT(engine_or_framework: str, prog_language: str) -> str:
   """

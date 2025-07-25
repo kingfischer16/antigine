@@ -2,110 +2,334 @@
 ProjectLedgerManager.py
 #######################
 
-This module provides the ProjectLedgerManager class, which is responsible for managing project ledgers.
+This module provides the ProjectLedgerManager class, which is responsible for managing project ledgers
+using SQLite database for persistent storage of features, relations, and documents.
 
-Additionally, it provides a non-class function that is to be called upon project initalization which produces the empty ledger file for the project.
+The manager handles all CRUD operations for features and maintains data integrity through proper
+database transactions and foreign key constraints.
 """
 
 # Imports
 from datetime import datetime
 import os
 import json
+import sqlite3
+from typing import List, Dict, Any, Optional, Tuple
+from core.database import get_connection, validate_database_schema
 
 
 class ProjectLedgerManager:
+    """
+    ProjectLedgerManager handles all interactions with the project ledger SQLite database.
+    
+    The ledger stores:
+    - Features: Main entries with metadata, status, and timestamps
+    - Relations: Dependencies and relationships between features  
+    - Documents: Feature request documents, FIPs, and ADRs
+    """
+    
     def __init__(self, project_folder: str):
         """
-        Loads the ledger into memory on initialization.
+        Initialize the ProjectLedgerManager with database connection.
         
-        project_folder (str): The path to the game project folder.
+        Args:
+            project_folder (str): The path to the game project folder.
+            
+        Raises:
+            sqlite3.Error: If database connection or validation fails.
+            FileNotFoundError: If project configuration is missing.
         """
         # Create instance attributes
         self.project_folder = project_folder
-        self.ledger_path = os.path.join(self.project_folder, ".antigine", "ledger.json")
-        project_file_path = os.path.join(self.project_folder, ".antigine", "project.json")
-        # Load the ledger data from the JSON file into memory
-        with open(self.ledger_path, 'r') as f:
-            self.ledger_data = json.load(f) # This is our in-memory dictionary
-        # Load the project data from the JSON file into memory
-        with open(project_file_path, 'r') as f:
-            self.project_data = json.load(f)
-        self.project_name = self.project_data.get("project_name", "Unnamed Project")
-        self.project_initials = self.project_data.get("project_initials", "F")  # Default to "NP" if not set
+        self.db_path = os.path.join(self.project_folder, ".antigine", "ledger.db")
+        self.project_config_path = os.path.join(self.project_folder, ".antigine", "project.json")
         
-    def add_feature(self, feature_data: dict) -> str:
+        # Validate database exists and has correct schema
+        if not validate_database_schema(self.db_path):
+            raise sqlite3.Error(f"Invalid or missing database schema at {self.db_path}")
+        
+        # Load project configuration
+        if not os.path.exists(self.project_config_path):
+            raise FileNotFoundError(f"Project configuration not found: {self.project_config_path}")
+            
+        with open(self.project_config_path, 'r', encoding='utf-8') as f:
+            self.project_data = json.load(f)
+            
+        self.project_name = self.project_data.get("project_name", "Unnamed Project")
+        self.project_initials = self.project_data.get("project_initials", "UP")
+        
+    def add_feature(self, feature_data: Dict[str, Any]) -> str:
         """
         Adds a new feature to the ledger and returns its unique feature ID.
 
-        feature_data (dict): A dictionary containing the feature data. See the 'example_ledger_entry' for fields to provide.
+        Args:
+            feature_data (dict): A dictionary containing the feature data with fields:
+                - type: Feature type ('new_feature', 'bug_fix', 'refactor', 'enhancement')
+                - title: Short descriptive title
+                - description: Detailed description (optional)
+                - keywords: List of keywords (optional)
+                - relations: List of relation dicts with 'type' and 'target_id' (optional)
 
         Returns:
             str: The unique feature ID assigned to the new feature.
+            
+        Raises:
+            sqlite3.Error: If database operation fails.
         """
-        # Get max feature id number from existing data
-        # and increment by one to get the new feature id number.
-        if not self.ledger_data:
-            new_feature_num = 1
-        else:
-            max_feature_id = max(int(fid.split("-")[1]) for fid in self.ledger_data.keys())
-            new_feature_num = str(max_feature_id + 1)
-        # Create the new feature ID
-        feature_id = f"{self.project_initials}-{new_feature_num}"
-        # Add the new feature to the ledger data
-        self.ledger_data[feature_id] = {
-            "type": feature_data.get("type", "new_feature"),
-            "status": feature_data.get("status", "requested"),  # Default status is 'requested'
-            "title": feature_data.get("title", ""),
-            "description": feature_data.get("description", ""),
-            "keywords": feature_data.get("keywords", []),
-            "dates": {
-                "created": datetime.today().strftime('%Y-%m-%d'),
-                "fip_approved": "",
-                "implemented": "",
-                "validated": "",
-                "superseded": ""
-            },
-            "artifacts": {
-                "request": fr"{feature_id}/request.md",
-                "fip": fr"{feature_id}/fip.md",
-                "adr": fr"{feature_id}/adr.md"
-            }
-        }
-
-    # METHOD 1: Direct Lookup (Very Fast)
-    def get_feature_by_id(self, feature_id):
-        """Returns the full data for a single feature."""
-        return self.ledger_data.get(feature_id)
-
-    # METHOD 2: Simple Filtering (Fast)
-    def get_features_by_status(self, status):
-        """Returns a list of all features matching a status."""
-        return [
-            {"feature_id": fid, **data} for fid, data in self.ledger_data.items()
-            if data['status'] == status
-        ]
-
-    # METHOD 3: Traditional Keyword Search (The Core Search Logic)
-    def keyword_search(self, search_terms: list[str]):
+        with get_connection(self.db_path) as conn:
+            try:
+                # Get next feature number
+                cursor = conn.execute("""
+                    SELECT feature_id FROM features 
+                    WHERE feature_id LIKE ? 
+                    ORDER BY CAST(SUBSTR(feature_id, LENGTH(?) + 2) AS INTEGER) DESC 
+                    LIMIT 1
+                """, (f"{self.project_initials}-%", self.project_initials))
+                
+                last_feature = cursor.fetchone()
+                if last_feature:
+                    last_num = int(last_feature[0].split("-")[1])
+                    new_feature_num = last_num + 1
+                else:
+                    new_feature_num = 1
+                
+                # Create new feature ID
+                feature_id = f"{self.project_initials}-{new_feature_num:03d}"
+                
+                # Insert feature record
+                conn.execute("""
+                    INSERT INTO features (
+                        feature_id, type, status, title, description, keywords, date_created
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    feature_id,
+                    feature_data.get("type", "new_feature"),
+                    feature_data.get("status", "requested"),
+                    feature_data.get("title", ""),
+                    feature_data.get("description", ""),
+                    json.dumps(feature_data.get("keywords", [])),
+                    datetime.now().isoformat()
+                ))
+                
+                # Add relations if provided
+                relations = feature_data.get("relations", [])
+                for relation in relations:
+                    conn.execute("""
+                        INSERT INTO feature_relations (feature_id, relation_type, target_id)
+                        VALUES (?, ?, ?)
+                    """, (feature_id, relation["type"], relation["target_id"]))
+                
+                conn.commit()
+                return feature_id
+                
+            except sqlite3.Error as e:
+                conn.rollback()
+                raise sqlite3.Error(f"Failed to add feature: {e}")
+    
+    def get_feature_by_id(self, feature_id: str) -> Optional[Dict[str, Any]]:
         """
-        Performs a simple keyword search across summaries and returns a ranked list of feature IDs.
+        Returns the full data for a single feature including relations and documents.
+        
+        Args:
+            feature_id (str): The unique feature identifier.
+            
+        Returns:
+            Optional[Dict[str, Any]]: Feature data dict or None if not found.
         """
-        results = []
-        for feature_id, data in self.ledger_data.items():
-            score = 0
-            # Combine all searchable text fields into one string
-            searchable_text = (
-                data['summary']['title'].lower() + " " +
-                data['summary']['description'].lower() + " " +
-                " ".join(data['summary']['keywords']).lower()
-            )
+        with get_connection(self.db_path) as conn:
+            # Get main feature data
+            cursor = conn.execute("SELECT * FROM features WHERE feature_id = ?", (feature_id,))
+            feature_row = cursor.fetchone()
+            
+            if not feature_row:
+                return None
+            
+            # Convert to dict and parse JSON fields
+            feature = dict(feature_row)
+            feature["keywords"] = json.loads(feature["keywords"]) if feature["keywords"] else []
+            feature["changed_files"] = json.loads(feature["changed_files"]) if feature["changed_files"] else []
+            
+            # Get relations
+            cursor = conn.execute("""
+                SELECT relation_type, target_id FROM feature_relations 
+                WHERE feature_id = ?
+            """, (feature_id,))
+            feature["relations"] = [
+                {"type": row[0], "target_id": row[1]} 
+                for row in cursor.fetchall()
+            ]
+            
+            # Get documents
+            cursor = conn.execute("""
+                SELECT document_type, content, created_at, updated_at 
+                FROM feature_documents 
+                WHERE feature_id = ?
+                ORDER BY document_type, updated_at DESC
+            """, (feature_id,))
+            
+            documents = {}
+            for row in cursor.fetchall():
+                doc_type, content, created_at, updated_at = row
+                documents[doc_type] = {
+                    "content": content,
+                    "created_at": created_at,
+                    "updated_at": updated_at
+                }
+            feature["documents"] = documents
+            
+            return feature
+    
+    def get_features_by_status(self, status: str) -> List[Dict[str, Any]]:
+        """
+        Returns a list of all features matching a status.
+        
+        Args:
+            status (str): The status to filter by.
+            
+        Returns:
+            List[Dict[str, Any]]: List of feature data dictionaries.
+        """
+        with get_connection(self.db_path) as conn:
+            cursor = conn.execute("""
+                SELECT feature_id, type, status, title, description, date_created 
+                FROM features 
+                WHERE status = ?
+                ORDER BY date_created DESC
+            """, (status,))
+            
+            return [dict(row) for row in cursor.fetchall()]
+    
+    def update_feature_status(self, feature_id: str, status: str, timestamp_field: Optional[str] = None) -> bool:
+        """
+        Updates a feature's status and optionally sets a timestamp field.
+        
+        Args:
+            feature_id (str): The feature to update.
+            status (str): The new status.
+            timestamp_field (Optional[str]): Which date field to update (e.g., 'date_fip_approved').
+            
+        Returns:
+            bool: True if update succeeded, False if feature not found.
+        """
+        with get_connection(self.db_path) as conn:
+            if timestamp_field:
+                cursor = conn.execute(f"""
+                    UPDATE features 
+                    SET status = ?, {timestamp_field} = ? 
+                    WHERE feature_id = ?
+                """, (status, datetime.now().isoformat(), feature_id))
+            else:
+                cursor = conn.execute("""
+                    UPDATE features 
+                    SET status = ? 
+                    WHERE feature_id = ?
+                """, (status, feature_id))
+            
+            conn.commit()
+            return cursor.rowcount > 0
+    
+    def add_feature_document(self, feature_id: str, document_type: str, content: str) -> bool:
+        """
+        Adds or updates a document for a feature.
+        
+        Args:
+            feature_id (str): The feature ID.
+            document_type (str): Type of document ('request', 'fip', 'adr').
+            content (str): The document content.
+            
+        Returns:
+            bool: True if operation succeeded.
+        """
+        with get_connection(self.db_path) as conn:
+            now = datetime.now().isoformat()
+            
+            # Check if document already exists
+            cursor = conn.execute("""
+                SELECT id FROM feature_documents 
+                WHERE feature_id = ? AND document_type = ?
+            """, (feature_id, document_type))
+            
+            if cursor.fetchone():
+                # Update existing document
+                conn.execute("""
+                    UPDATE feature_documents 
+                    SET content = ?, updated_at = ?
+                    WHERE feature_id = ? AND document_type = ?
+                """, (content, now, feature_id, document_type))
+            else:
+                # Insert new document
+                conn.execute("""
+                    INSERT INTO feature_documents (feature_id, document_type, content, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (feature_id, document_type, content, now, now))
+            
+            conn.commit()
+            return True
+    
+    def keyword_search(self, search_terms: List[str]) -> List[Dict[str, Any]]:
+        """
+        Performs a keyword search across feature titles, descriptions, and keywords.
+        
+        Args:
+            search_terms (List[str]): List of terms to search for.
+            
+        Returns:
+            List[Dict[str, Any]]: List of matching features with relevance scores.
+        """
+        if not search_terms:
+            return []
+        
+        with get_connection(self.db_path) as conn:
+            # Build search query
+            search_conditions = []
+            params = []
             
             for term in search_terms:
-                if term.lower() in searchable_text:
-                    score += 1 # Add 1 point for each matching term
+                term_lower = f"%{term.lower()}%"
+                search_conditions.append("""
+                    (LOWER(title) LIKE ? OR LOWER(description) LIKE ? OR LOWER(keywords) LIKE ?)
+                """)
+                params.extend([term_lower, term_lower, term_lower])
             
-            if score > 0:
-                results.append({"feature_id": feature_id, "score": score})
+            query = f"""
+                SELECT feature_id, type, status, title, description, date_created,
+                       ({' + '.join(['1'] * len(search_terms))}) as relevance_score
+                FROM features 
+                WHERE {' OR '.join(search_conditions)}
+                ORDER BY relevance_score DESC, date_created DESC
+            """
+            
+            cursor = conn.execute(query, params)
+            return [dict(row) for row in cursor.fetchall()]
+    
+    def get_feature_statistics(self) -> Dict[str, Any]:
+        """
+        Returns summary statistics about features in the ledger.
         
-        # Return results sorted by relevance score, highest first
-        return sorted(results, key=lambda x: x['score'], reverse=True)
+        Returns:
+            Dict[str, Any]: Statistics including counts by status and type.
+        """
+        with get_connection(self.db_path) as conn:
+            stats = {}
+            
+            # Count by status
+            cursor = conn.execute("""
+                SELECT status, COUNT(*) as count 
+                FROM features 
+                GROUP BY status
+            """)
+            stats["by_status"] = dict(cursor.fetchall())
+            
+            # Count by type
+            cursor = conn.execute("""
+                SELECT type, COUNT(*) as count 
+                FROM features 
+                GROUP BY type
+            """)
+            stats["by_type"] = dict(cursor.fetchall())
+            
+            # Total count
+            cursor = conn.execute("SELECT COUNT(*) FROM features")
+            stats["total_features"] = cursor.fetchone()[0]
+            
+            return stats

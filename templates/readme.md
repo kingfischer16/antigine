@@ -25,10 +25,8 @@ Primary table storing feature metadata:
 | `description` | TEXT | Concise AI-generated summary (max 120 words) |
 | `keywords` | TEXT | JSON array of keywords for searchability |
 | `date_created` | TEXT | ISO 8601 timestamp when feature was requested |
-| `date_fip_approved` | TEXT | Timestamp when FIP passed review (nullable) |
-| `date_implemented` | TEXT | Timestamp when implementation was submitted (nullable) |
-| `date_validated` | TEXT | Timestamp when feature was validated (nullable) |
-| `date_superseded` | TEXT | Timestamp if feature became obsolete (nullable) |
+| `date_implemented` | TEXT | Timestamp when feature implementation was completed (nullable) |
+| `date_superseded` | TEXT | Timestamp if feature became obsolete due to another feature (nullable) |
 | `commit_hash` | TEXT | Git commit hash where feature was implemented (nullable) |
 | `changed_files` | TEXT | JSON array of files modified in implementation (nullable) |
 
@@ -49,7 +47,7 @@ Stores feature artifacts (requests, FIPs, ADRs):
 | ------ | ---- | ----------- |
 | `id` | INTEGER PRIMARY KEY | Auto-increment ID |
 | `feature_id` | TEXT | Associated feature ID (foreign key) |
-| `document_type` | TEXT | Document type: 'request', 'fip', 'adr' |
+| `document_type` | TEXT | Document type: 'feature_request', 'technical_architecture_specification', 'feature_implementation_plan' |
 | `content` | TEXT | Full document content (Markdown) |
 | `created_at` | TEXT | ISO 8601 timestamp when document was created |
 | `updated_at` | TEXT | ISO 8601 timestamp when document was last modified |

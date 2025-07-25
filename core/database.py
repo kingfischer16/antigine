@@ -25,9 +25,7 @@ CREATE TABLE IF NOT EXISTS features (
     description TEXT,
     keywords TEXT, -- JSON array as text
     date_created TEXT NOT NULL,
-    date_fip_approved TEXT,
     date_implemented TEXT,
-    date_validated TEXT,
     date_superseded TEXT,
     commit_hash TEXT,
     changed_files TEXT -- JSON array as text
@@ -47,7 +45,7 @@ CREATE TABLE IF NOT EXISTS feature_relations (
 CREATE TABLE IF NOT EXISTS feature_documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     feature_id TEXT NOT NULL,
-    document_type TEXT NOT NULL CHECK (document_type IN ('request', 'fip', 'adr')),
+    document_type TEXT NOT NULL CHECK (document_type IN ('feature_request', 'technical_architecture_specification', 'feature_implementation_plan')),
     content TEXT NOT NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,

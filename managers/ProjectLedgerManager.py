@@ -206,13 +206,13 @@ class ProjectLedgerManager:
         Args:
             feature_id (str): The feature to update.
             status (str): The new status.
-            timestamp_field (Optional[str]): Which date field to update (e.g., 'date_fip_approved').
+            timestamp_field (Optional[str]): Which date field to update ('date_implemented' or 'date_superseded').
             
         Returns:
             bool: True if update succeeded, False if feature not found.
         """
         with get_connection(self.db_path) as conn:
-            if timestamp_field:
+            if timestamp_field and timestamp_field in ('date_implemented', 'date_superseded'):
                 cursor = conn.execute(f"""
                     UPDATE features 
                     SET status = ?, {timestamp_field} = ? 
@@ -228,13 +228,54 @@ class ProjectLedgerManager:
             conn.commit()
             return cursor.rowcount > 0
     
+    def mark_feature_implemented(self, feature_id: str, commit_hash: Optional[str] = None, changed_files: Optional[List[str]] = None) -> bool:
+        """
+        Marks a feature as implemented and records implementation details.
+        
+        Args:
+            feature_id (str): The feature to mark as implemented.
+            commit_hash (Optional[str]): Git commit hash where feature was implemented.
+            changed_files (Optional[List[str]]): List of files changed in implementation.
+            
+        Returns:
+            bool: True if update succeeded, False if feature not found.
+        """
+        with get_connection(self.db_path) as conn:
+            now = datetime.now().isoformat()
+            
+            cursor = conn.execute("""
+                UPDATE features 
+                SET status = 'validated', date_implemented = ?, commit_hash = ?, changed_files = ?
+                WHERE feature_id = ?
+            """, (
+                now, 
+                commit_hash, 
+                json.dumps(changed_files) if changed_files else None,
+                feature_id
+            ))
+            
+            conn.commit()
+            return cursor.rowcount > 0
+    
+    def mark_feature_superseded(self, feature_id: str) -> bool:
+        """
+        Marks a feature as superseded by another feature.
+        
+        Args:
+            feature_id (str): The feature to mark as superseded.
+            
+        Returns:
+            bool: True if update succeeded, False if feature not found.
+        """
+        return self.update_feature_status(feature_id, 'superseded', 'date_superseded')
+    
     def add_feature_document(self, feature_id: str, document_type: str, content: str) -> bool:
         """
         Adds or updates a document for a feature.
         
         Args:
             feature_id (str): The feature ID.
-            document_type (str): Type of document ('request', 'fip', 'adr').
+            document_type (str): Type of document ('feature_request', 'technical_architecture_specification', 'feature_implementation_plan').
             content (str): The document content.
             
         Returns:

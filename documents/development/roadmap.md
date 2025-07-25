@@ -87,6 +87,7 @@ This document outlines the development plan for building the complete Antigine m
 - [ ] Generates working boilerplate code that compiles/runs
 - [ ] Proper .antigine folder structure with valid database
 - [ ] Framework documentation URLs stored for agent use
+- [ ] Clear messaging about GDD/modules as creative starting points, not rigid requirements
 
 ---
 
@@ -100,18 +101,24 @@ This document outlines the development plan for building the complete Antigine m
 - [ ] Framework-aware questions (2D vs 3D capabilities, etc.)
 - [ ] GDD template integration and validation
 - [ ] Export to markdown format for human review
+- [ ] Emphasize GDD as creative scaffolding, not rigid specification
+- [ ] Include guidance on iterating GDD based on playtesting
 
 #### **Module Planner Agent** (`core/agents/module_planner.py`)
 - [ ] GDD analysis and architectural decomposition
 - [ ] Framework-specific module suggestions
 - [ ] Dependency identification between modules
 - [ ] Integration with existing codebase analysis
+- [ ] Support for module evolution based on gameplay discoveries
+- [ ] Ability to deprecate/replace modules that don't serve fun gameplay
 
 #### **Feature Request Writer Agent** (`core/agents/feature_writer.py`)
 - [ ] Module-to-feature breakdown logic
 - [ ] Codebase context integration
 - [ ] Acceptance criteria generation
 - [ ] Feature scope and complexity estimation
+- [ ] Support for creating features that deviate from original modules
+- [ ] Ability to generate features based on playtesting insights rather than just GDD
 
 ### 📦 Implementation Phase Agents
 
@@ -162,6 +169,8 @@ This document outlines the development plan for building the complete Antigine m
 - [ ] Agents utilize stored documentation URLs effectively
 - [ ] Feature lifecycle trackable through all stages
 - [ ] Framework-specific outputs generated correctly
+- [ ] Agents support iterative evolution of GDD/modules based on gameplay feedback
+- [ ] System encourages "follow the fun" development approach
 
 ---
 
@@ -293,6 +302,8 @@ antigine validate <id>          # Validate implemented feature
 - [ ] Supports multiple tech stacks with high reliability
 - [ ] Comprehensive error handling covers edge cases
 - [ ] Documentation enables new users to be productive quickly
+- [ ] Users understand the balance between structured planning and iterative "follow the fun" development
+- [ ] Clear examples of evolving GDD/modules based on playtesting feedback
 
 ---
 

@@ -40,7 +40,7 @@ class ProjectSetupManager:
             "assets/images",
             "assets/sounds",
             "assets/meshes",
-            "assets/textures"
+            "assets/textures",
             "levels",
             "scripts",
             "data",

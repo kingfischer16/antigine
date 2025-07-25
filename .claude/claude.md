@@ -1,190 +1,93 @@
-# Antigine: Agentic Anti-Engine Game Development Tool
+# Claude.md: AI Guide for Antigine
 
-## Project Overview
+This file is the primary guide for our AI assistant, Claude Code. It contains essential project information, commands, and rules to ensure effective and safe collaboration. Please review it before making changes.
 
-**Antigine** is a multi-agent AI system designed to accelerate game development by automating planning, architecture, implementation, and documentation phases. It operates on an "anti-engine" philosophy, building games from the ground up using minimal, purpose-built code without traditional game engine bloat.
+## 1. Project Overview
 
-**Core Philosophy:** The codebase is the single source of truth. Each feature integration maintains a functional, playable game state through incremental development.
-
-## Development Context for Claude Code
-
-This project requires understanding of:
-- **Multi-agent orchestration** using LangChain/LangGraph
-- **Pydantic state management** for workflow coordination
-- **Prompt engineering** for specialized AI agents
-- **Love2D/Lua** as the target game development framework
-- **SQLite database** integration for project metadata
-
-**Current Working Directory:** All development happens in the repository root with organized subdirectories.
-
-## Current Status & Development Phase
-
-- **Phase:** Early development - core implementation pipeline tested
-- **Working Components:** 4 of 9 agents (Technical Architecture Writer/Reviewer, Implementation Plan Writer/Reviewer)
-- **Framework:** Initially targeting Lua/Love2D with architecture for future expansion
-- **Current Testing:** Complex feature requests to stress-test agent capabilities
-- **Active Development:** `notebooks/testing_core_loop_architecture.ipynb` contains the working implementation
-
-## Project Structure
-
+- **Project:** Antigine
+- **Description:** Antigine is a multi-agent AI system designed to act as an expert development partner for building games by writing only the code you need, without the bloat of traditional game engines. Antigine will initially be a CLI application, possibly later being given a web app front end. Antigine mirrors some aspects of Claude Code but with specific application towards video game development. The system is language and framework agnostic, allowing users to develop games in any programming language and framework combination.
+- **Technology Stack:** Python (project language), LangGraph (multi-agent framework), various LLM APIs (OpenAI, Google, etc.)
+- **Architecture:** 
 ```
 antigine/
-├── .claude/                    # Claude project documentation
-├── .antigine/                  # Generated project artifacts (not in repo)
-├── core/                       # Core system components
-│   ├── chains.py              # LangChain chain definitions
-│   ├── models.py              # Data models and state classes
-│   └── prompts.py             # Agent prompts and templates
-├── managers/                   # High-level system managers
-│   ├── ProjectLedgerManager.py # Database and feature management
-│   └── ProjectSetupManager.py  # Project initialization
-├── notebooks/                  # Development and testing notebooks
-│   ├── testing_core_loop_architecture.ipynb # 🎯 CURRENT WORKING IMPLEMENTATION
-│   └── test_chains.ipynb      # Chain testing
-├── documents/                  # Documentation and specifications
-│   ├── architecture/          # Technical architecture docs
-│   │   └── agent_specifications.md # Detailed agent specs
-│   └── design/                # Design documents and prompts
-├── templates/                  # JSON templates and examples
-└── scripts/                   # Utility scripts
+├── .claude/            # Claude project documentation
+├── core/               # Core system components (models, prompts)
+├── managers/           # High-level system managers
+├── notebooks/          # Development and testing notebooks (human use only) 
+├── documents/          # Documentation and specifications for the development of the Antigine system
+├── templates/          # Templates for table data, schemas, config files
+├── tests/              # unit tests for non-API calling functions
+└── scripts/            # Utility scripts
 ```
 
-## System Architecture
+## 2. Key Commands
 
-### Multi-Agent Design (9 Agents Total)
+Use these commands to work with the repository:
 
-**Planning Phase (3 agents):** 🚧 TODO
-1. **GDD Creator** - Interactive chat for Game Design Document creation
-2. **Module Planner** - Converts GDD into architectural modules  
-3. **Feature Request Writer** - Creates implementable feature requests
+- **Install Dependencies:** `pip install -r requirements.txt && pip install -r requirements-dev.txt`
+- **Run Tests:** `python -m unittest discover tests`
+- **Run Type Checking:** `mypy .`
+- **Run Linting:** `flake8 .`
+- **Build Project:** `python -m build` (requires `pyproject.toml` setup - request help if needed)
 
-**Implementation Phase (6 agents):**
-4. **Technical Architecture Writer** - Designs technical specifications ✅ WORKING
-5. **Technical Architecture Reviewer** - Validates feasibility and scope ✅ WORKING
-6. **Implementation Plan Writer** - Creates detailed implementation plans ✅ WORKING
-7. **Implementation Plan Reviewer** - Ensures modularity and integration ✅ WORKING
-8. **Coder** - Implements features and resolves build errors 🚧 NEXT PRIORITY
-9. **Code Reviewer** - Final code quality review 🚧 TODO
+## 3. Workflow & Style Guide
 
-### Key Technical Components
+**Development Workflow:**
+1. Create a new feature branch for each feature/functionality
+2. Keep feature branches small but complete
+3. Plan and review changes thoroughly before implementation (Rule #1)
+4. Develop the feature following the multi-agent architecture pattern
+5. Add comprehensive unit tests for non-API calling functions
+6. Run type checking (`mypy`) and linting (`flake8`) before committing
+7. Conduct manual CLI testing to emulate user experience
+8. Request human review before implementation (Rule #2)
+9. Create pull request after thorough testing
+10. Merge after final approval
 
-**State Management:**
-- `WorkflowState` (Pydantic models) in `core/models.py`
-- Review classes with structured scoring (1-5 scale, ≥4 for approval)
-- LangGraph integration for stateful workflows
+**Code Style:**
+- Follow PEP 8 guidelines for Python code
+- Use type hints throughout the codebase, creating custom types as needed
+- Include proper docstrings for all functions, classes, and modules
+- Add file headers describing contents, intended use, and function
 
-**Database Design:**
-- `ledger.db` (SQLite) for feature metadata and relationships
-- `.antigine/` folder for generated markdown files
-- Project registration in local app data
+## 4. Project Context & Understanding
 
-**Agent Orchestration:**
-- Located in `notebooks/testing_core_loop_architecture.ipynb`
-- StateGraph with conditional review loops
-- Maximum 3 revision cycles before human escalation
+**Essential Reading:** Before working on Antigine, always review:
+- `README.md` for current project summary
+- Files in `documents/` folder for detailed architecture and specifications
+- `requirements.txt` and `requirements-dev.txt` for current dependencies (these change frequently)
+- Existing code in `core/` and `managers/` for architecture patterns
 
-## Development Guidelines & Patterns
+**Key Project Principles:**
+- **Language & Framework Agnosticism:** Antigine assists in developing games in ANY programming language and framework combination
+- **Multi-Agent Architecture:** Uses LangGraph with central orchestrators managing state and conditional edges
+- **Documentation Generation:** Use Sphinx for automatic project documentation
 
-### Code Style
-- **Pydantic Models** for all state management and structured data
-- **LangGraph** for orchestration and stateful workflows  
-- **Type Hints** throughout for better IDE support
-- **Modular Design** with clear agent separation
+## 5. Immutable Rules (NON-NEGOTIABLE)
 
-### Agent Development Pattern
-1. Define agent in `core/prompts.py` with specific role and output format
-2. Create node function in workflow with error handling
-3. Add review loop logic with scoring criteria
-4. Test in isolation before integrating into main workflow
-5. Validate with complex feature requests
+These rules must be followed at all times. Violation of these rules is a critical error.
 
-### Prompt Engineering Best Practices
-- **Framework-Specific Context** - All prompts include Love2D/Lua context
-- **Structured Output Requirements** with JSON schemas where applicable
-- **Review Criteria** explicitly defined with 1-5 scoring rubrics
-- **Error Handling** for malformed responses and edge cases
-- **Context Integration** - Previous drafts and feedback in revision cycles
+1. **ALWAYS thoroughly plan and review changes or additions to code before implementation**
+2. **ALWAYS ask for a human review before implementing code changes**
+3. **NEVER modify or run files in the notebooks/ folder**
+4. **ALWAYS refer to Python and LangGraph best practices when creating or changing code**
+5. **ALWAYS suggest tests for new functions when tests do not require an API call to an LLM**
+6. **NEVER store API keys or sensitive information in any repository folder (public or private)**
+7. **ALWAYS implement loop limit counters for all review/iteration loops (default: 3 iterations maximum)**
+8. **ALWAYS check requirements.txt and requirements-dev.txt for current dependencies before making assumptions**
+9. **ALWAYS use type hints and follow PEP 8 guidelines when writing Python code**
+10. **ALWAYS include proper docstrings and file headers for new code**
+11. **ALWAYS implement rate limiting mechanisms for API calls to prevent excessive usage**
+12. **ALWAYS ensure multi-agent graphs have a central orchestrator managing state and conditional edges**
 
-## Current Priorities & Next Steps
+## 6. Security & API Guidelines
 
-### 🎯 IMMEDIATE (Current Sprint)
-1. **Complete Coder Agent** - Implement the code generation agent in the workflow
-2. **Add Code Reviewer Agent** - Final validation step for generated code
-3. **Fix Implementation Plan Review Loop** - Currently disabled for debugging
-4. **Test Small Feature Implementation** - Validate incremental development philosophy
+- **API Keys:** Stored as local environment variables, referenced by LLM API calls following best practices
+- **Rate Limiting:** Implement appropriate rate limiting for API calls to prevent abuse
+- **Environment Variables:** All sensitive configuration uses environment variables with `.env` files (never committed to repo)
+- **Multi-Agent Coordination:** Each graph has a central orchestrator managing state, conditional edges, and human operator approval processes
+- **Loop Management:** All loops require limit counters (default: 3 iterations) to prevent infinite cycles
 
-### 📋 SHORT TERM
-1. **Planning Phase Agents** - GDD Creator, Module Planner, Feature Request Writer
-2. **Database Integration** - Complete `ProjectLedgerManager.py` implementation
-3. **CLI Interface** - User interaction and project management tools
+---
 
-### 🔮 MEDIUM TERM
-1. **Love2D Build Integration** - Compilation and error handling
-2. **Version Control Integration** - Git workflow automation
-3. **Evaluation System** - Automated testing and quality metrics
-
-## Key Files for Development
-
-### 🔥 Critical Files (Most Important)
-- `notebooks/testing_core_loop_architecture.ipynb` - **Main working implementation**
-- `core/models.py` - **State classes and workflow data structures**
-- `core/prompts.py` - **All agent prompt templates**
-- `documents/architecture/agent_specifications.md` - **Complete agent specifications**
-
-### 📚 Reference Files
-- `core/chains.py` - LangChain chain definitions
-- `managers/ProjectLedgerManager.py` - Database operations
-- `templates/` - JSON templates and configuration examples
-
-## Integration & Dependencies
-
-### External Dependencies
-- **LangChain/LangGraph** - Agent orchestration (`pip install langgraph`)
-- **Google Gemini** - Currently using `gemini-2.5-flash-lite-preview-06-17`
-- **SQLite** - Local database (built into Python)
-- **Pydantic** - Data validation and settings management
-- **Love2D/Lua** - Target framework for game development
-
-### Environment Setup
-```bash
-pip install langgraph pydantic sqlite3 google-generativeai
-# Love2D installation varies by platform
-```
-
-## Success Metrics & Quality Gates
-
-### Quality Standards
-- All reviewer agents require scores ≥4 for approval
-- Maximum 3 revision cycles before human escalation  
-- Generated code must be syntactically valid Lua/Love2D
-- Features must integrate without breaking existing functionality
-- Maintain incremental, playable game state throughout development
-
-### Development Velocity Targets
-- Agent implementation: 1-2 days per agent
-- Complex feature requests: Complete in <30 minutes
-- Full pipeline validation: <1 hour
-
-## Common Development Tasks
-
-### Adding a New Agent
-1. Define prompt template in `core/prompts.py`
-2. Create Pydantic model for agent output in `core/models.py`
-3. Implement node function with error handling
-4. Add to workflow graph in main notebook
-5. Test with sample inputs
-
-### Testing Agent Changes
-1. Use `notebooks/test_chains.ipynb` for isolated testing
-2. Test with complex feature requests (inventory systems, dialogue)
-3. Validate review loop logic and scoring
-4. Ensure structured output compliance
-
-### Debugging Workflow Issues
-1. Check StateGraph node connections
-2. Validate Pydantic model schemas
-3. Review LangChain prompt templates
-4. Test agent responses in isolation
-5. Check database state consistency
-
-This project represents a sophisticated AI orchestration system requiring careful state management, prompt engineering, and iterative development practices. The multi-agent architecture demands understanding of both AI prompt design and software engineering principles.
+**Note:** This file provides development guidelines. For complete project understanding, refer to the main README.md and documentation in the `documents/` folder.

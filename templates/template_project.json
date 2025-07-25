@@ -4,10 +4,10 @@
     "project_description": "This is a sample project template.",
     "project_version": "0.0.0",
     "project_repository_url": "https://github...",
-    "project_language": "Python 3.12.10",
-    "engine_name": "Ursina Engine",
-    "engine_repository_url": "https://github.com/pokepetter/ursina",
-    "engine_documentation_url": "https://www.ursinaengine.org/documentation.html",
-    "engine_api_reference_url": "https://www.ursinaengine.org/api_reference.html",
-    "engine_examples_url": "https://www.ursinaengine.org/samples.html"
+    "project_language": "Lua",
+    "engine_name": "Love2D",
+    "engine_repository_url": "https://github.com/love2d/love",
+    "engine_documentation_url": "https://love2d.org/wiki/Main_Page",
+    "engine_api_reference_url": "https://love2d.org/wiki/love",
+    "engine_examples_url": "https://love2d.org/wiki/Category:Games"
 }

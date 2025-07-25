@@ -187,7 +187,7 @@ Antigine employs a **nine-agent architecture** organized into two main phases, c
 
 **Approval Requirements:** All scores ≥4 for approval
 
-### 8. Coder Agent
+### 8. Code Writer Agent
 **Role:** Implements features and resolves build issues
 **Input:** Approved implementation plan, existing codebase, framework documentation
 **Output:** Code changes (new files, modifications), compilation verification

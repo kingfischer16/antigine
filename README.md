@@ -68,7 +68,7 @@ The implementation phase processes individual feature requests through a structu
 1. **Feature Selection** - Choose a feature request from the ledger
 2. **Technical Architecture** - Writer creates comprehensive technical specification; Reviewer validates feasibility and scope
 3. **Implementation Planning** - Writer creates detailed implementation plan with code snippets; Reviewer ensures modularity and integration compatibility  
-4. **Coding** - Coder implements the feature, compiles code, and resolves any build errors
+4. **Code Writing** - Coder implements the feature, compiles code, and resolves any build errors
 5. **Code Review** - Final review for syntax, best practices, and code quality
 
 Each approved document is stored in `ledger.db` and linked to the feature request. The human operator reviews and approves all outputs before progression to the next stage.

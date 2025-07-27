@@ -416,7 +416,7 @@ end
             # Generate requirements.txt based on Python libraries
             requirements = []
             for lib in analysis.libraries:
-                if lib.language == "Python":
+                if "Python" in lib.languages:
                     if lib.name == "Pygame":
                         requirements.append("pygame>=2.0.0")
                     elif lib.name == "NumPy":

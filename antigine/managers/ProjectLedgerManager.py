@@ -15,7 +15,7 @@ import os
 import json
 import sqlite3
 from typing import List, Dict, Any, Optional, Tuple
-from core.database import get_connection, validate_database_schema
+from ..core.database import get_connection, validate_database_schema
 
 
 class ProjectLedgerManager:

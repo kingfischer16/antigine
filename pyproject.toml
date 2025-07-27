@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "antigine"
+version = "0.1.0"
+description = "The Agentic Anti-Engine Game Development Tool"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Antigine Development Team"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Games/Entertainment",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "langchain-core",
+    "langchain-openai", 
+    "langchain-google-genai",
+    "langchain-linkup",
+    "langgraph",
+    "pydantic",
+    "python-dotenv",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ipython",
+    "mypy",
+    "flake8",
+    "pytest",
+    "pytest-cov",
+]
+
+[project.scripts]
+antigine = "antigine.run:main"
+
+[project.urls]
+Homepage = "https://github.com/kingfischer16/antigine"
+Repository = "https://github.com/kingfischer16/antigine"
+Issues = "https://github.com/kingfischer16/antigine/issues"
+
+[tool.setuptools.packages.find]
+include = ["antigine*"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.flake8]
+max-line-length = 120
+extend-ignore = ["E203", "W503"]

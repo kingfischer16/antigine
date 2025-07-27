@@ -87,7 +87,7 @@ class ProjectSetupManager:
         """
         Creates an empty SQLite ledger database for the project.
         """
-        from core.database import initialize_database
+        from ..core.database import initialize_database
         
         antigine_folder = os.path.join(self.game_project_folder, ".antigine")
         if not os.path.isdir(antigine_folder):

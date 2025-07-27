@@ -53,7 +53,9 @@ class ProjectSetupManager:
 
         # Copy the 'template_project.json' file from the antigine templates folder in this module to
         # the .antigine folder in the game_project_folder, and rename it to 'project.json'.
-        template_project_path = os.path.join(os.path.dirname(__file__), "templates", "template_project.json")
+        # Navigate up from managers/ to the project root to find templates/
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        template_project_path = os.path.join(project_root, "templates", "template_project.json")
         if not os.path.isfile(template_project_path):
             raise FileNotFoundError(f"Template project file does not exist: {template_project_path}")
         project_file_path = os.path.join(antigine_folder, "project.json")

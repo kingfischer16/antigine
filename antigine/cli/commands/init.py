@@ -43,12 +43,12 @@ def handle_init(args: Namespace) -> int:
                 default=os.path.basename(project_dir)
             )
         
-        # TODO: Framework selection will be implemented in Phase 2
+        # TODO: Tech stack selection will be implemented in Phase 2
         # For now, we'll use a placeholder
-        framework = args.framework or "love2d"
+        tech_stack = args.tech_stack or "love2d"
         
         print_info(f"Initializing Antigine project '{project_name}' in {project_dir}")
-        print_info(f"Framework: {framework}")
+        print_info(f"Tech Stack: {tech_stack}")
         
         # Create project setup manager and initialize
         setup_manager = ProjectSetupManager(project_dir)
@@ -60,7 +60,7 @@ def handle_init(args: Namespace) -> int:
         # Update project configuration
         print_info("Configuring project...")
         setup_manager.edit_project_file("project_name", project_name)
-        setup_manager.edit_project_file("framework", framework)
+        setup_manager.edit_project_file("tech_stack", tech_stack)
         
         # Initialize ledger database
         print_info("Initializing project ledger...")

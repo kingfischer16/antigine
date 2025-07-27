@@ -42,7 +42,7 @@ def handle_status(args: Namespace) -> int:
             return 1
         
         project_name = project_config.get("project_name", "Unknown Project")
-        framework = project_config.get("framework", "Unknown")
+        tech_stack = project_config.get("tech_stack", "Unknown")
         
         # Get project statistics
         try:
@@ -55,8 +55,8 @@ def handle_status(args: Namespace) -> int:
         # Display project status
         print_project_status(stats, project_name)
         
-        # Show framework information
-        print(f"\nFramework: {framework}")
+        # Show tech stack information
+        print(f"\nTech Stack: {tech_stack}")
         print(f"Project Directory: {project_dir}")
         
         # Show verbose information if requested

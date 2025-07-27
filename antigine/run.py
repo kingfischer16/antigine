@@ -54,8 +54,8 @@ Examples:
         help="Project name (interactive prompt if not provided)"
     )
     init_parser.add_argument(
-        "--framework",
-        help="Game framework (interactive selection if not provided)"
+        "--tech-stack",
+        help="Game tech stack - single framework (e.g. 'Love2D') or multiple libraries separated by '+' (e.g. 'SDL2+OpenGL+GLM')"
     )
     
     # Status command

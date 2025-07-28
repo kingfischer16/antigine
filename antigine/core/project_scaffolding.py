@@ -475,15 +475,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
         # Add find_package calls based on libraries
         if "SDL2" in lib_names:
-            cmake_content += "find_package(SDL2 REQUIRED)\\n"
+            cmake_content += "find_package(SDL2 REQUIRED)\n"
         if "OpenGL" in lib_names:
-            cmake_content += "find_package(OpenGL REQUIRED)\\n"
+            cmake_content += "find_package(OpenGL REQUIRED)\n"
         if "GLFW" in lib_names:
-            cmake_content += "find_package(glfw3 REQUIRED)\\n"
+            cmake_content += "find_package(glfw3 REQUIRED)\n"
         if "Bullet" in lib_names:
-            cmake_content += "find_package(Bullet REQUIRED)\\n"
+            cmake_content += "find_package(Bullet REQUIRED)\n"
         if "Assimp" in lib_names:
-            cmake_content += "find_package(assimp REQUIRED)\\n"
+            cmake_content += "find_package(assimp REQUIRED)\n"
 
         cmake_content += f"""
 # Add executable

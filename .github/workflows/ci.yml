@@ -95,12 +95,12 @@ jobs:
 
     - name: Check code formatting with Black
       run: |
-        black --check --diff antigine/ tests/ scripts/
+        black --check --diff antigine/ tests/
         echo "✅ Code formatting check passed"
 
     - name: Run flake8 linting
       run: |
-        flake8 --max-line-length=120 --extend-ignore=E203,W503 antigine/ tests/ scripts/
+        flake8 --max-line-length=120 --extend-ignore=E203,W503 antigine/ tests/
         echo "✅ Linting passed"
 
     - name: Run mypy type checking

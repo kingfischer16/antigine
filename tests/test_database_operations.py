@@ -373,7 +373,7 @@ class TestProjectLedgerManager(unittest.TestCase):
 
             # Don't create database - this should cause an error
             # Should raise sqlite3.Error
-            with self.assertRaises(Exception):  # Could be sqlite3.Error or other
+            with self.assertRaises(sqlite3.Error):  # Catch specific database error
                 ProjectLedgerManager(temp_dir)
         finally:
             shutil.rmtree(temp_dir, ignore_errors=True)

@@ -339,7 +339,9 @@ class TechStackManager:
             raise ValueError("Tech stack input cannot be None or empty")
 
         if not isinstance(tech_stack_input, str):
-            raise TypeError(f"Tech stack input must be a string, got {type(tech_stack_input)}")
+            raise TypeError(
+                f"Tech stack input must be a string (e.g., 'SDL2+OpenGL+GLM'), got {type(tech_stack_input)}"
+            )
 
         # Normalize input by stripping whitespace
         tech_stack_input = tech_stack_input.strip()

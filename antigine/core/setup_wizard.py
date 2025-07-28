@@ -151,7 +151,7 @@ class SetupWizard:
 
     def _category_based_selection(self, language: str) -> str:
         """Browse libraries by category and build tech stack."""
-        print_info("\\nCategory-Based Selection")
+        print_info("\nCategory-Based Selection")
         print_info("Browse available libraries by category and build your tech stack.")
 
         selected_libraries: List[str] = []

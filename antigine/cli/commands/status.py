@@ -10,7 +10,7 @@ import json
 from argparse import Namespace
 
 from ...managers.ProjectLedgerManager import ProjectLedgerManager
-from ..utils.output import print_success, print_error, print_info, print_project_status
+from ..utils.output import print_error, print_info, print_project_status
 from ..utils.validation import detect_project_directory
 
 
@@ -61,13 +61,13 @@ def handle_status(args: Namespace) -> int:
 
         # Show verbose information if requested
         if args.verbose:
-            print(f"\nConfiguration:")
+            print("\nConfiguration:")
             for key, value in project_config.items():
                 print(f"  {key}: {value}")
 
             # Show recent features if any exist
             if stats.get("total_features", 0) > 0:
-                print(f"\nRecent Features:")
+                print("\nRecent Features:")
                 try:
                     # Get recent features (limit to 5)
                     recent_features = []

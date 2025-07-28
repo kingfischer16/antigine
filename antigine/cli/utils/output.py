@@ -6,7 +6,7 @@ CLI output formatting utilities. Provides consistent styling and messaging for C
 """
 
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 def print_success(message: str) -> None:

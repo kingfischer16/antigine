@@ -9,9 +9,7 @@ This module works with the tech_stacks module to create language and library-spe
 project layouts that follow best practices for the specified technology combination.
 """
 
-import os
-import json
-from typing import Dict, List, Set, Optional
+from typing import Dict, List
 from pathlib import Path
 from .tech_stacks import TechStackAnalysis, LibraryCategory, LibraryInfo
 

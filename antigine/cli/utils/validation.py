@@ -8,7 +8,7 @@ CLI input validation and interactive prompt utilities.
 import os
 import re
 import sys
-from typing import List, Optional, Union, Callable
+from typing import List, Optional, Callable
 
 
 def detect_project_directory(path: str) -> bool:

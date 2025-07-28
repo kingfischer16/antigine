@@ -7,12 +7,7 @@ Tests the core logic of TechStackManager without side effects.
 """
 
 import unittest
-from antigine.core.tech_stacks import (
-    TechStackManager, 
-    LibraryCategory, 
-    get_default_tech_stack, 
-    resolve_tech_stack_name
-)
+from antigine.core.tech_stacks import TechStackManager, LibraryCategory, get_default_tech_stack, resolve_tech_stack_name
 
 
 class TestTechStackManager(unittest.TestCase):

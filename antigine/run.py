@@ -135,11 +135,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     except ImportError as e:
         print(f"ImportError: {e}. Please ensure all required dependencies are installed.", file=sys.stderr)
         return 1
-    
+
     except PermissionError as e:
         print(f"PermissionError: {e}. Please check your file permissions.", file=sys.stderr)
         return 1
-    
+
     except Exception as e:
         print(f"An unexpected error occurred: {e}. Please report this issue.", file=sys.stderr)
         return 1

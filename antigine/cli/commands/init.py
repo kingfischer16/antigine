@@ -7,7 +7,6 @@ CLI command handler for project initialization. Delegates to ProjectSetupManager
 
 import os
 from argparse import Namespace
-from typing import cast
 
 from ...managers.ProjectSetupManager import ProjectSetupManager
 from ..utils.output import print_success, print_error, print_info

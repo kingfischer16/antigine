@@ -7,7 +7,7 @@ and project configuration. This provides a user-friendly way to discover
 and configure appropriate technology combinations for game development.
 """
 
-from typing import List, Dict, Optional, Tuple
+from typing import List, Tuple
 from .tech_stacks import TechStackManager, LibraryCategory, LibraryInfo
 from ..cli.utils.validation import prompt_for_input, prompt_for_choice, confirm_action
 from ..cli.utils.output import print_info, print_success, print_warning

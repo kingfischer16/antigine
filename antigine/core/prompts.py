@@ -37,7 +37,8 @@ def TECH_ARCHITECT_WRITER_SYSTEM_PROMPT(engine_or_framework: str, prog_language:
         "For each major component include component name, purpose, key methods, and data structures.\n"
         "\n"
         "## Component Interactions\n"
-        "Describe how components communicate with each other. Include component calls, data passed, and event flow as necessary.\n"
+        "Describe how components communicate with each other. Include component calls, data passed, "
+        "and event flow as necessary.\n"
         "\n"
         "## File Organization\n"
         "List the specific files to create and what each contains.\n"
@@ -104,7 +105,8 @@ def TECH_ARCHITECT_REVIEWER_SYSTEM_PROMPT(engine_or_framework: str, prog_languag
         + prog_language
         + "],\n"
         " - 'simplicity_score' (int): [1-5, where 5 = appropriately simple],\n"
-        " - 'review_notes' (str): If Needs Revision: describe specific issues to fix. If Approved: leave empty string.\n"
+        " - 'review_notes' (str): If Needs Revision: describe specific issues to fix. "
+        "If Approved: leave empty string.\n"
         "\n"
         "Example output format:\n"
         "review_status: Approved\n"
@@ -113,7 +115,8 @@ def TECH_ARCHITECT_REVIEWER_SYSTEM_PROMPT(engine_or_framework: str, prog_languag
         "simplicity_score: 5\n"
         "review_notes: \n"
         "\n"
-        "Only approve if ALL scores are 4 or greater. Otherwise mark as 'Needs Revision' and provide specific feedback.\n"
+        "Only approve if ALL scores are 4 or greater. Otherwise mark as 'Needs Revision' "
+        "and provide specific feedback.\n"
         "-----\n"
     )
 
@@ -233,7 +236,8 @@ def FIP_REVIEWER_SYSTEM_PROMPT(engine_or_framework: str, prog_language: str) -> 
         " - 'completeness_score' (int): [1-5, where 5 = all architecture components covered],\n"
         " - 'implementation_score' (int): [1-5, where 5 = clear, actionable instructions],\n"
         " - 'alignment_score' (int): [1-5, where 5 = fully matches architecture],\n"
-        " - 'review_notes' (str): If Needs Revision: describe specific issues to fix. If Approved: leave empty string.\n"
+        " - 'review_notes' (str): If Needs Revision: describe specific issues to fix. "
+        "If Approved: leave empty string.\n"
         "\n"
         "Example output format:\n"
         "review_status: Approved\n"
@@ -242,6 +246,7 @@ def FIP_REVIEWER_SYSTEM_PROMPT(engine_or_framework: str, prog_language: str) -> 
         "alignment_score: 5\n"
         "review_notes: \n"
         "\n"
-        "Only approve if ALL scores are 4 or greater. Otherwise mark as 'Needs Revision' and provide specific feedback.\n"
+        "Only approve if ALL scores are 4 or greater. Otherwise mark as 'Needs Revision' "
+        "and provide specific feedback.\n"
         "-----\n"
     )

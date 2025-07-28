@@ -12,7 +12,7 @@ The system supports dynamic parsing of user-specified tech stacks like:
 - "Pygame+NumPy+Pillow" (Python libraries)
 """
 
-from typing import Dict, List, Set, Optional, Tuple
+from typing import Dict, List, Optional
 from dataclasses import dataclass
 from enum import Enum
 

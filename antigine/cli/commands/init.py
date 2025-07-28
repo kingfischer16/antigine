@@ -109,7 +109,9 @@ def _get_programming_language(args: Namespace) -> str:
     for i, lang in enumerate(available_languages, 1):
         print_info(f"  {i}. {lang}")
 
-    language = prompt_for_choice("Select programming language", choices=available_languages, default=None)  # type: ignore
+    language = prompt_for_choice(
+        "Select programming language", choices=available_languages, default=None  # type: ignore
+    )
 
     return language
 

@@ -2,7 +2,8 @@
 ProjectSetupManager.py
 ######################
 
-This module provides functions and classes dedicated to setting up a new project, including creating the necessary directory structure and initializing the ledger.
+This module provides functions and classes dedicated to setting up a new project,
+including creating the necessary directory structure and initializing the ledger.
 """
 
 # Imports

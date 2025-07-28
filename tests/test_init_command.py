@@ -9,7 +9,6 @@ language and tech stack selection behavior.
 import unittest
 import tempfile
 import os
-import json
 import shutil
 from unittest.mock import patch, MagicMock
 from argparse import Namespace

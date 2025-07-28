@@ -95,12 +95,12 @@ def print_feature_summary(feature: Dict[str, Any]) -> None:
         print(f"\nKeywords: {keywords}")
 
     if feature.get("relations"):
-        print(f"\nRelations:")
+        print("\nRelations:")
         for relation in feature["relations"]:
             print(f"  {relation['type']}: {relation['target_id']}")
 
     if feature.get("documents"):
-        print(f"\nDocuments:")
+        print("\nDocuments:")
         for doc_type in feature["documents"]:
             doc = feature["documents"][doc_type]
             print(f"  {doc_type}: Updated {doc['updated_at']}")
@@ -119,11 +119,11 @@ def print_project_status(stats: Dict[str, Any], project_name: str) -> None:
     print(f"Total Features: {stats.get('total_features', 0)}")
 
     if "by_status" in stats:
-        print(f"\nBy Status:")
+        print("\nBy Status:")
         for status, count in stats["by_status"].items():
             print(f"  {status.replace('_', ' ').title()}: {count}")
 
     if "by_type" in stats:
-        print(f"\nBy Type:")
+        print("\nBy Type:")
         for feature_type, count in stats["by_type"].items():
             print(f"  {feature_type.replace('_', ' ').title()}: {count}")

@@ -14,7 +14,7 @@ from datetime import datetime
 import os
 import json
 import sqlite3
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 from ..core.database import get_connection, validate_database_schema
 
 
@@ -81,9 +81,9 @@ class ProjectLedgerManager:
                 # Get next feature number
                 cursor = conn.execute(
                     """
-                    SELECT feature_id FROM features 
-                    WHERE feature_id LIKE ? 
-                    ORDER BY CAST(SUBSTR(feature_id, LENGTH(?) + 2) AS INTEGER) DESC 
+                    SELECT feature_id FROM features
+                    WHERE feature_id LIKE ?
+                    ORDER BY CAST(SUBSTR(feature_id, LENGTH(?) + 2) AS INTEGER) DESC
                     LIMIT 1
                 """,
                     (f"{self.project_initials}-%", self.project_initials),
@@ -161,7 +161,7 @@ class ProjectLedgerManager:
             # Get relations
             cursor = conn.execute(
                 """
-                SELECT relation_type, target_id FROM feature_relations 
+                SELECT relation_type, target_id FROM feature_relations
                 WHERE feature_id = ?
             """,
                 (feature_id,),
@@ -171,8 +171,8 @@ class ProjectLedgerManager:
             # Get documents
             cursor = conn.execute(
                 """
-                SELECT document_type, content, created_at, updated_at 
-                FROM feature_documents 
+                SELECT document_type, content, created_at, updated_at
+                FROM feature_documents
                 WHERE feature_id = ?
                 ORDER BY document_type, updated_at DESC
             """,
@@ -200,8 +200,8 @@ class ProjectLedgerManager:
         with get_connection(self.db_path) as conn:
             cursor = conn.execute(
                 """
-                SELECT feature_id, type, status, title, description, date_created 
-                FROM features 
+                SELECT feature_id, type, status, title, description, date_created
+                FROM features
                 WHERE status = ?
                 ORDER BY date_created DESC
             """,
@@ -226,8 +226,8 @@ class ProjectLedgerManager:
             if timestamp_field and timestamp_field in ("date_implemented", "date_superseded"):
                 cursor = conn.execute(
                     f"""
-                    UPDATE features 
-                    SET status = ?, {timestamp_field} = ? 
+                    UPDATE features
+                    SET status = ?, {timestamp_field} = ?
                     WHERE feature_id = ?
                 """,
                     (status, datetime.now().isoformat(), feature_id),
@@ -235,8 +235,8 @@ class ProjectLedgerManager:
             else:
                 cursor = conn.execute(
                     """
-                    UPDATE features 
-                    SET status = ? 
+                    UPDATE features
+                    SET status = ?
                     WHERE feature_id = ?
                 """,
                     (status, feature_id),
@@ -264,7 +264,7 @@ class ProjectLedgerManager:
 
             cursor = conn.execute(
                 """
-                UPDATE features 
+                UPDATE features
                 SET status = 'validated', date_implemented = ?, commit_hash = ?, changed_files = ?
                 WHERE feature_id = ?
             """,
@@ -292,7 +292,8 @@ class ProjectLedgerManager:
 
         Args:
             feature_id (str): The feature ID.
-            document_type (str): Type of document ('feature_request', 'technical_architecture_specification', 'feature_implementation_plan').
+            document_type (str): Type of document ('feature_request',
+                'technical_architecture_specification', 'feature_implementation_plan').
             content (str): The document content.
 
         Returns:
@@ -304,7 +305,7 @@ class ProjectLedgerManager:
             # Check if document already exists
             cursor = conn.execute(
                 """
-                SELECT id FROM feature_documents 
+                SELECT id FROM feature_documents
                 WHERE feature_id = ? AND document_type = ?
             """,
                 (feature_id, document_type),
@@ -314,7 +315,7 @@ class ProjectLedgerManager:
                 # Update existing document
                 conn.execute(
                     """
-                    UPDATE feature_documents 
+                    UPDATE feature_documents
                     SET content = ?, updated_at = ?
                     WHERE feature_id = ? AND document_type = ?
                 """,
@@ -363,7 +364,7 @@ class ProjectLedgerManager:
             query = f"""
                 SELECT feature_id, type, status, title, description, date_created,
                        ({' + '.join(['1'] * len(search_terms))}) as relevance_score
-                FROM features 
+                FROM features
                 WHERE {' OR '.join(search_conditions)}
                 ORDER BY relevance_score DESC, date_created DESC
             """
@@ -384,8 +385,8 @@ class ProjectLedgerManager:
             # Count by status
             cursor = conn.execute(
                 """
-                SELECT status, COUNT(*) as count 
-                FROM features 
+                SELECT status, COUNT(*) as count
+                FROM features
                 GROUP BY status
             """
             )
@@ -394,8 +395,8 @@ class ProjectLedgerManager:
             # Count by type
             cursor = conn.execute(
                 """
-                SELECT type, COUNT(*) as count 
-                FROM features 
+                SELECT type, COUNT(*) as count
+                FROM features
                 GROUP BY type
             """
             )

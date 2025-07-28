@@ -72,46 +72,79 @@ class ProjectScaffolder:
         folders.update(base_folders)
 
         # Library-specific folders
+        self._add_library_required_folders(folders, analysis)
+
+        # Category-specific asset folders
+        self._add_rendering_folders(folders, analysis)
+        self._add_asset_folders(folders, analysis)
+        self._add_audio_folders(folders, analysis)
+        self._add_ui_folders(folders, analysis)
+
+        # Framework-specific folders
+        self._add_framework_folders(folders, analysis)
+
+        # Remove empty strings and sort
+        return sorted([f for f in folders if f])
+
+    def _add_library_required_folders(self, folders: set, analysis: TechStackAnalysis) -> None:
+        """Add folders required by specific libraries."""
         for library in analysis.libraries:
             if library.required_folders:
                 folders.update(library.required_folders)
 
-        # Category-specific folders based on context
+    def _add_rendering_folders(self, folders: set, analysis: TechStackAnalysis) -> None:
+        """Add rendering-related asset folders."""
         categories = [lib.category for lib in analysis.libraries]
-        lib_names = [lib.name for lib in analysis.libraries]
-
-        # Determine if this is a 3D-capable tech stack
-        is_3d_context = any(lib.name in ["OpenGL", "Vulkan", "Assimp", "Bullet"] for lib in analysis.libraries)
-
         if LibraryCategory.RENDERING in categories:
             folders.update(["assets/shaders", "assets/textures"])
 
-        if LibraryCategory.ASSETS in categories:
-            # Always add textures (used by both 2D and 3D)
-            folders.add("assets/textures")
+    def _add_asset_folders(self, folders: set, analysis: TechStackAnalysis) -> None:
+        """Add asset folders based on 2D/3D context."""
+        categories = [lib.category for lib in analysis.libraries]
+        lib_names = [lib.name for lib in analysis.libraries]
 
-            # Add 3D-specific folders only if 3D libraries are present
-            if is_3d_context or "Assimp" in lib_names:
-                folders.add("assets/models")
-                folders.add("assets/materials")  # Common in 3D workflows
+        if LibraryCategory.ASSETS not in categories:
+            return
 
-            # Add 2D-specific folders (sprites are common in 2D games)
-            if not is_3d_context or any(lib.name in ["Love2D", "Pygame"] for lib in analysis.libraries):
-                folders.add("assets/sprites")
-                folders.add("assets/images")  # General images separate from sprites
+        # Always add textures (used by both 2D and 3D)
+        folders.add("assets/textures")
 
-        # Framework-specific asset folders
-        if "Love2D" in lib_names or "Pygame" in lib_names:
+        # Determine if this is a 3D-capable tech stack
+        is_3d_context = self._is_3d_context(analysis)
+
+        # Add 3D-specific folders
+        if is_3d_context or "Assimp" in lib_names:
+            folders.update(["assets/models", "assets/materials"])
+
+        # Add 2D-specific folders
+        if not is_3d_context or self._has_2d_frameworks(analysis):
             folders.update(["assets/sprites", "assets/images"])
 
+    def _add_audio_folders(self, folders: set, analysis: TechStackAnalysis) -> None:
+        """Add audio-related asset folders."""
+        categories = [lib.category for lib in analysis.libraries]
         if LibraryCategory.AUDIO in categories:
             folders.update(["assets/audio", "assets/music"])
 
+    def _add_ui_folders(self, folders: set, analysis: TechStackAnalysis) -> None:
+        """Add UI-related asset folders."""
+        categories = [lib.category for lib in analysis.libraries]
         if LibraryCategory.UI in categories:
-            folders.update(["assets/fonts"])
+            folders.add("assets/fonts")
 
-        # Remove empty strings and sort
-        return sorted([f for f in folders if f])
+    def _add_framework_folders(self, folders: set, analysis: TechStackAnalysis) -> None:
+        """Add framework-specific asset folders."""
+        lib_names = [lib.name for lib in analysis.libraries]
+        if "Love2D" in lib_names or "Pygame" in lib_names:
+            folders.update(["assets/sprites", "assets/images"])
+
+    def _is_3d_context(self, analysis: TechStackAnalysis) -> bool:
+        """Determine if the tech stack is 3D-capable."""
+        return any(lib.name in ["OpenGL", "Vulkan", "Assimp", "Bullet"] for lib in analysis.libraries)
+
+    def _has_2d_frameworks(self, analysis: TechStackAnalysis) -> bool:
+        """Check if the tech stack includes 2D frameworks."""
+        return any(lib.name in ["Love2D", "Pygame"] for lib in analysis.libraries)
 
     def _generate_starter_files(self, project_name: str, analysis: TechStackAnalysis) -> Dict[str, str]:
         """Generate starter code files based on tech stack."""
@@ -380,7 +413,7 @@ int main() {{
     def _generate_library_file_content(self, filename: str, library: LibraryInfo, analysis: TechStackAnalysis) -> str:
         """Generate content for library-specific files."""
         if filename == "conf.lua" and library.name == "Love2D":
-            return f"""-- Love2D Configuration File
+            return """-- Love2D Configuration File
 
 function love.conf(t)
     t.title = "Game Title"

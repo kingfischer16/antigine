@@ -8,7 +8,6 @@ Tests folder structure generation and file content creation logic.
 
 import unittest
 import tempfile
-import os
 import shutil
 from pathlib import Path
 from antigine.core.project_scaffolding import ProjectScaffolder
@@ -300,7 +299,7 @@ class TestProjectScaffolderIntegration(unittest.TestCase):
         """Test that C++ projects create CMakeLists.txt."""
         analysis = self.tech_stack_manager.parse_tech_stack("SDL2+OpenGL", "C++")
 
-        result = self.scaffolder.scaffold_project(str(self.project_path), "TestGame", analysis)
+        self.scaffolder.scaffold_project(str(self.project_path), "TestGame", analysis)
 
         # Check CMakeLists.txt was created
         cmake_path = self.project_path / "CMakeLists.txt"

@@ -45,7 +45,8 @@ Examples:
     )
     init_parser.add_argument(
         "--tech-stack",
-        help="Game tech stack - single framework (e.g. 'Love2D') or multiple libraries separated by '+' (e.g. 'SDL2+OpenGL+GLM')",
+        help="Game tech stack - single framework (e.g. 'Love2D') or multiple libraries "
+        "separated by '+' (e.g. 'SDL2+OpenGL+GLM')",
     )
 
     # Status command

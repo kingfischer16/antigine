@@ -11,7 +11,6 @@ import tempfile
 import os
 import json
 import shutil
-from datetime import datetime
 from antigine.core.database import initialize_database, get_connection, validate_database_schema
 from antigine.managers.ProjectLedgerManager import ProjectLedgerManager
 
@@ -41,7 +40,7 @@ class TestDatabaseOperations(unittest.TestCase):
             # Check that tables exist
             cursor = conn.execute(
                 """
-                SELECT name FROM sqlite_master 
+                SELECT name FROM sqlite_master
                 WHERE type='table' AND name NOT LIKE 'sqlite_%'
             """
             )

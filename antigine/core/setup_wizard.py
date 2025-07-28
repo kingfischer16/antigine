@@ -110,34 +110,34 @@ class SetupWizard:
 
     def _guided_tech_stack_selection(self, language: str) -> str:
         """Guided tech stack selection with questions."""
-        print_info("\\nGuided Tech Stack Selection")
+        print_info("\nGuided Tech Stack Selection")
         print_info("Answer a few questions to get personalized recommendations.")
 
         # Question 1: Game type
-        game_type = prompt_for_choice("\\nWhat type of game are you making?", ["2D Game", "3D Game", "Not sure yet"])
+        game_type = prompt_for_choice("\nWhat type of game are you making?", ["2D Game", "3D Game", "Not sure yet"])
 
         # Question 2: Experience level
         experience = prompt_for_choice(
-            "\\nWhat's your experience level with game development?", ["Beginner", "Intermediate", "Advanced"]
+            "\nWhat's your experience level with game development?", ["Beginner", "Intermediate", "Advanced"]
         )
 
         # Question 3: Project scope
         scope = prompt_for_choice(
-            "\\nWhat's the scope of your project?",
+            "\nWhat's the scope of your project?",
             ["Small prototype/learning project", "Medium indie game", "Large/commercial project"],
         )
 
         # Generate recommendations
         recommendations = self._generate_recommendations(language, game_type, experience, scope)
 
-        print_info("\\nBased on your answers, here are our recommendations:")
+        print_info("\nBased on your answers, here are our recommendations:")
         for i, (tech_stack, reason) in enumerate(recommendations, 1):
-            print(f"\\n  {i}. {tech_stack}")
+            print(f"\n  {i}. {tech_stack}")
             print(f"     {reason}")
 
         if recommendations:
             choice = prompt_for_choice(
-                "\\nSelect a recommended tech stack or choose 'Custom' to specify your own",
+                "\nSelect a recommended tech stack or choose 'Custom' to specify your own",
                 [rec[0] for rec in recommendations] + ["Custom"],
             )
 

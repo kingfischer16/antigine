@@ -350,7 +350,7 @@ class TechStackManager:
             raise ValueError("Tech stack input cannot be empty or contain only whitespace")
 
         # Check for edge cases with only delimiters
-        if all(char in "+" for char in tech_stack_input):
+        if all(char == "+" for char in tech_stack_input):
             raise ValueError("Tech stack input cannot contain only delimiter characters ('+')")
 
         # Parse library names - filter out empty strings after splitting and stripping

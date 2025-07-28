@@ -1,28 +1,6 @@
 # Start Coding Session
 
-I'll begin a documented coding session to track progress and maintain context.
-
-Creating session record with:
-- Timestamp: Current date/time
-- Git state: Current branch and commit
-- Session goals: What we aim to accomplish
-
-```bash
-SESSION_DIR=".claude-sessions"
-mkdir -p "$SESSION_DIR"
-SESSION_FILE="$SESSION_DIR/session_$(date +%Y%m%d_%H%M%S).log"
-
-echo "=== Claude Coding Session ===" > "$SESSION_FILE"
-echo "Started: $(date)" >> "$SESSION_FILE"
-echo "Branch: $(git branch --show-current 2>/dev/null || echo 'no git')" >> "$SESSION_FILE"
-echo "Commit: $(git rev-parse --short HEAD 2>/dev/null || echo 'no git')" >> "$SESSION_FILE"
-echo "" >> "$SESSION_FILE"
-echo "Goals:" >> "$SESSION_FILE"
-```
-
-Please tell me:
-1. What are we working on today?
-2. What specific goals do you want to accomplish?
-3. Any context I should know about?
-
-I'll document these goals and track our progress throughout the session.
+Please review the instructions in project's `.claude/claude.md` file as well as the project `readme.md` file and the documentation in the `documents/development` folder. Please tell me:
+1. What is the development status of this project?
+2. What feature, component, or activity do you suggest we develop next?
+3. Is there any context I should know about?

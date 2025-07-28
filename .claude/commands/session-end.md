@@ -1,31 +1,15 @@
 # End Coding Session
 
-I'll summarize this coding session and prepare handoff notes.
-
-Let me analyze what we accomplished by:
+Briefly review what was accomplished in this development session. Analyze this by:
 1. Looking at what files were created/modified
 2. Checking git changes made during the session
 3. Summarizing the work completed
 
-```bash
-# Find the latest session file
-SESSION_FILE=$(ls -t .claude-sessions/session_*.log 2>/dev/null | head -1)
-
-if [ -f "$SESSION_FILE" ]; then
-    echo "" >> "$SESSION_FILE"
-    echo "=== Session Summary ===" >> "$SESSION_FILE"
-    echo "Ended: $(date)" >> "$SESSION_FILE"
-    echo "" >> "$SESSION_FILE"
-fi
-
-# Check what changed
-git diff --stat $(git rev-parse HEAD~1 2>/dev/null || echo HEAD) 2>/dev/null || echo "No git changes"
-```
-
+Create and print a summary with the following format:
 ## Session Summary:
 
 ### Accomplished:
-- I'll list all completed tasks from our conversation
+- List all completed tasks from our conversation
 - Files created/modified
 - Problems solved
 
@@ -39,4 +23,4 @@ git diff --stat $(git rev-parse HEAD~1 2>/dev/null || echo HEAD) 2>/dev/null || 
 - Important context for next session
 - Any blockers or dependencies
 
-This summary helps maintain continuity between coding sessions.
+Read the `documents/development/roadmap.md` file, and update it such that it reflects the current state of development of this project.

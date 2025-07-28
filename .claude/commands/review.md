@@ -1,8 +1,8 @@
 # Code Review
 
-I'll review your code for potential issues.
+Review the project code for potential issues.
 
-Let me examine the files we've been working on and any recent changes for:
+Examine the files we've been working on and any recent changes for:
 
 1. **Security Issues**
    - Hardcoded credentials

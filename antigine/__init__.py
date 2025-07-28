@@ -1,7 +1,7 @@
 """
 Antigine: The Agentic Anti-Engine Game Development Tool
 
-A multi-agent AI system designed to act as an expert development partner for building games 
+A multi-agent AI system designed to act as an expert development partner for building games
 by writing only the code you need, without the bloat of traditional game engines.
 """
 

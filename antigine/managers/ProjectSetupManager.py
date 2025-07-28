@@ -9,6 +9,7 @@ This module provides functions and classes dedicated to setting up a new project
 import os
 import json
 
+
 class ProjectSetupManager:
     """
     ProjectSetupManager is responsible for setting up a new game project by creating the necessary folder structure
@@ -45,7 +46,7 @@ class ProjectSetupManager:
             "scripts",
             "data",
             "logs",
-            "source"
+            "source",
         ]
         for folder in folders_to_create:
             folder_path = os.path.join(self.game_project_folder, folder)
@@ -84,13 +85,13 @@ class ProjectSetupManager:
 
         with open(project_file_path, "w", encoding="utf-8") as f:
             json.dump(project_data, f, indent=4)
-        
+
     def create_empty_ledger(self) -> None:
         """
         Creates an empty SQLite ledger database for the project.
         """
         from ..core.database import initialize_database
-        
+
         antigine_folder = os.path.join(self.game_project_folder, ".antigine")
         if not os.path.isdir(antigine_folder):
             raise FileNotFoundError(f"Expected directory does not exist: {antigine_folder}")

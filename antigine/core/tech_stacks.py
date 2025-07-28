@@ -19,46 +19,48 @@ from enum import Enum
 
 class LibraryCategory(Enum):
     """Categories for organizing libraries by their primary function."""
-    FRAMEWORK = "Framework"          # Complete game frameworks (Love2D, Pygame)
-    WINDOWING = "Windowing"         # Window/input management (SDL2, GLFW)
-    RENDERING = "Rendering"         # Graphics APIs (OpenGL, Vulkan, DirectX)
-    MATH = "Math"                   # Mathematics libraries (GLM, NumPy)
-    PHYSICS = "Physics"             # Physics engines (Bullet, Box2D)
-    AUDIO = "Audio"                 # Audio systems (OpenAL, FMOD)
-    NETWORKING = "Networking"       # Network libraries (ENet, RakNet)
-    ASSETS = "Assets"               # Asset loading (Assimp, stb_image)
-    UI = "UI"                       # User interface (Dear ImGui, CEGUI)
-    UTILITY = "Utility"             # General utilities (spdlog, JSON)
-    BUILD = "Build"                 # Build systems (CMake, Make)
+
+    FRAMEWORK = "Framework"  # Complete game frameworks (Love2D, Pygame)
+    WINDOWING = "Windowing"  # Window/input management (SDL2, GLFW)
+    RENDERING = "Rendering"  # Graphics APIs (OpenGL, Vulkan, DirectX)
+    MATH = "Math"  # Mathematics libraries (GLM, NumPy)
+    PHYSICS = "Physics"  # Physics engines (Bullet, Box2D)
+    AUDIO = "Audio"  # Audio systems (OpenAL, FMOD)
+    NETWORKING = "Networking"  # Network libraries (ENet, RakNet)
+    ASSETS = "Assets"  # Asset loading (Assimp, stb_image)
+    UI = "UI"  # User interface (Dear ImGui, CEGUI)
+    UTILITY = "Utility"  # General utilities (spdlog, JSON)
+    BUILD = "Build"  # Build systems (CMake, Make)
 
 
 @dataclass
 class LibraryInfo:
     """Complete metadata for a single library or framework."""
+
     name: str
     display_name: str
     description: str
     category: LibraryCategory
     languages: List[str]
-    
+
     # Documentation
     documentation_url: str
     api_reference_url: str
     examples_url: str
     repository_url: Optional[str] = None
-    
+
     # Integration info
-    dependencies: List[str] = None  # Other libraries this depends on
-    conflicts: List[str] = None     # Libraries incompatible with this one
-    
+    dependencies: Optional[List[str]] = None  # Other libraries this depends on
+    conflicts: Optional[List[str]] = None  # Libraries incompatible with this one
+
     # Installation
-    install_instructions: Dict[str, str] = None  # Platform-specific install commands
-    
+    install_instructions: Optional[Dict[str, str]] = None  # Platform-specific install commands
+
     # Project setup
-    required_files: List[str] = None      # Files this library typically needs
-    required_folders: List[str] = None    # Folders this library typically needs
-    
-    def __post_init__(self):
+    required_files: Optional[List[str]] = None  # Files this library typically needs
+    required_folders: Optional[List[str]] = None  # Folders this library typically needs
+
+    def __post_init__(self) -> None:
         if self.dependencies is None:
             self.dependencies = []
         if self.conflicts is None:
@@ -73,7 +75,6 @@ class LibraryInfo:
 
 # Comprehensive Library Database
 LIBRARY_DATABASE: Dict[str, LibraryInfo] = {
-    
     # === 2D FRAMEWORKS ===
     "Love2D": LibraryInfo(
         name="Love2D",
@@ -88,12 +89,11 @@ LIBRARY_DATABASE: Dict[str, LibraryInfo] = {
         install_instructions={
             "windows": "Download from https://love2d.org/",
             "ubuntu": "sudo apt install love",
-            "macos": "brew install love"
+            "macos": "brew install love",
         },
         required_files=["main.lua", "conf.lua"],
-        required_folders=["assets/sprites", "assets/images", "assets/audio", "src"]
+        required_folders=["assets/sprites", "assets/images", "assets/audio", "src"],
     ),
-    
     "Pygame": LibraryInfo(
         name="Pygame",
         display_name="Pygame",
@@ -104,13 +104,10 @@ LIBRARY_DATABASE: Dict[str, LibraryInfo] = {
         api_reference_url="https://www.pygame.org/docs/ref/",
         examples_url="https://github.com/pygame/pygame/tree/main/examples",
         repository_url="https://github.com/pygame/pygame",
-        install_instructions={
-            "all": "pip install pygame"
-        },
+        install_instructions={"all": "pip install pygame"},
         required_files=["main.py", "requirements.txt"],
-        required_folders=["src", "assets/sprites", "assets/images", "assets/sounds"]
+        required_folders=["src", "assets/sprites", "assets/images", "assets/sounds"],
     ),
-    
     # === WINDOWING/INPUT ===
     "SDL2": LibraryInfo(
         name="SDL2",
@@ -125,11 +122,10 @@ LIBRARY_DATABASE: Dict[str, LibraryInfo] = {
         install_instructions={
             "ubuntu": "sudo apt install libsdl2-dev",
             "windows": "vcpkg install sdl2",
-            "macos": "brew install sdl2"
+            "macos": "brew install sdl2",
         },
-        required_folders=["src", "include"]
+        required_folders=["src", "include"],
     ),
-    
     "GLFW": LibraryInfo(
         name="GLFW",
         display_name="GLFW",
@@ -143,10 +139,9 @@ LIBRARY_DATABASE: Dict[str, LibraryInfo] = {
         install_instructions={
             "ubuntu": "sudo apt install libglfw3-dev",
             "windows": "vcpkg install glfw3",
-            "macos": "brew install glfw"
-        }
+            "macos": "brew install glfw",
+        },
     ),
-    
     # === RENDERING ===
     "OpenGL": LibraryInfo(
         name="OpenGL",
@@ -158,9 +153,8 @@ LIBRARY_DATABASE: Dict[str, LibraryInfo] = {
         api_reference_url="https://registry.khronos.org/OpenGL/",
         examples_url="https://learnopengl.com/",
         dependencies=["GLFW"],  # Usually needs a windowing library
-        required_folders=["assets/shaders"]
+        required_folders=["assets/shaders"],
     ),
-    
     "Vulkan": LibraryInfo(
         name="Vulkan",
         display_name="Vulkan API",
@@ -171,9 +165,8 @@ LIBRARY_DATABASE: Dict[str, LibraryInfo] = {
         api_reference_url="https://registry.khronos.org/vulkan/",
         examples_url="https://vulkan-tutorial.com/",
         conflicts=["OpenGL"],  # Typically don't use both
-        required_folders=["assets/shaders"]
+        required_folders=["assets/shaders"],
     ),
-    
     # === MATH ===
     "GLM": LibraryInfo(
         name="GLM",
@@ -188,10 +181,9 @@ LIBRARY_DATABASE: Dict[str, LibraryInfo] = {
         install_instructions={
             "ubuntu": "sudo apt install libglm-dev",
             "windows": "vcpkg install glm",
-            "macos": "brew install glm"
-        }
+            "macos": "brew install glm",
+        },
     ),
-    
     "NumPy": LibraryInfo(
         name="NumPy",
         display_name="NumPy",
@@ -202,11 +194,8 @@ LIBRARY_DATABASE: Dict[str, LibraryInfo] = {
         api_reference_url="https://numpy.org/doc/stable/reference/",
         examples_url="https://numpy.org/numpy-tutorials/",
         repository_url="https://github.com/numpy/numpy",
-        install_instructions={
-            "all": "pip install numpy"
-        }
+        install_instructions={"all": "pip install numpy"},
     ),
-    
     # === PHYSICS ===
     "Bullet": LibraryInfo(
         name="Bullet",
@@ -221,10 +210,9 @@ LIBRARY_DATABASE: Dict[str, LibraryInfo] = {
         install_instructions={
             "ubuntu": "sudo apt install libbullet-dev",
             "windows": "vcpkg install bullet3",
-            "macos": "brew install bullet"
-        }
+            "macos": "brew install bullet",
+        },
     ),
-    
     "Box2D": LibraryInfo(
         name="Box2D",
         display_name="Box2D",
@@ -239,10 +227,9 @@ LIBRARY_DATABASE: Dict[str, LibraryInfo] = {
         install_instructions={
             "ubuntu": "sudo apt install libbox2d-dev",
             "windows": "vcpkg install box2d",
-            "macos": "brew install box2d"
-        }
+            "macos": "brew install box2d",
+        },
     ),
-    
     # === ASSETS ===
     "Assimp": LibraryInfo(
         name="Assimp",
@@ -257,11 +244,10 @@ LIBRARY_DATABASE: Dict[str, LibraryInfo] = {
         install_instructions={
             "ubuntu": "sudo apt install libassimp-dev",
             "windows": "vcpkg install assimp",
-            "macos": "brew install assimp"
+            "macos": "brew install assimp",
         },
-        required_folders=["assets/models"]
+        required_folders=["assets/models"],
     ),
-    
     "stb_image": LibraryInfo(
         name="stb_image",
         display_name="stb_image",
@@ -272,9 +258,8 @@ LIBRARY_DATABASE: Dict[str, LibraryInfo] = {
         api_reference_url="https://github.com/nothings/stb/blob/master/stb_image.h",
         examples_url="https://github.com/nothings/stb/tree/master/tests",
         repository_url="https://github.com/nothings/stb",
-        required_folders=["assets/textures"]
+        required_folders=["assets/textures"],
     ),
-    
     # === UI ===
     "Dear ImGui": LibraryInfo(
         name="Dear ImGui",
@@ -289,15 +274,16 @@ LIBRARY_DATABASE: Dict[str, LibraryInfo] = {
         install_instructions={
             "windows": "vcpkg install imgui",
             "ubuntu": "Build from source - see documentation",
-            "macos": "Build from source - see documentation"
-        }
-    )
+            "macos": "Build from source - see documentation",
+        },
+    ),
 }
 
 
 @dataclass
 class TechStackAnalysis:
     """Result of analyzing a user-specified tech stack."""
+
     language: str
     libraries: List[LibraryInfo]
     documentation_urls: Dict[str, str]
@@ -311,24 +297,24 @@ class TechStackAnalysis:
 
 class TechStackManager:
     """Manager for parsing and validating user-specified tech stacks."""
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
         self.library_db = LIBRARY_DATABASE
-    
+
     def parse_tech_stack(self, tech_stack_input: str, language: str) -> TechStackAnalysis:
         """
         Parse user input like "SDL2+OpenGL+GLM" into analyzed tech stack information.
-        
+
         Args:
             tech_stack_input: User-specified tech stack (e.g., "SDL2+OpenGL+GLM")
             language: Programming language (e.g., "C++")
-            
+
         Returns:
             TechStackAnalysis with validation results and metadata
         """
         # Parse library names
-        library_names = [lib.strip() for lib in tech_stack_input.split('+')]
-        
+        library_names = [lib.strip() for lib in tech_stack_input.split("+") if lib.strip()]
+
         # Initialize analysis result
         analysis = TechStackAnalysis(
             language=language,
@@ -339,15 +325,15 @@ class TechStackManager:
             unsupported_libraries=[],
             conflicts=[],
             warnings=[],
-            suggested_additions=[]
+            suggested_additions=[],
         )
-        
+
         # Process each library
         found_libraries = []
         for lib_name in library_names:
             if lib_name in self.library_db:
                 lib_info = self.library_db[lib_name]
-                
+
                 # Check language compatibility
                 if language in lib_info.languages:
                     found_libraries.append(lib_info)
@@ -361,101 +347,98 @@ class TechStackManager:
                     )
             else:
                 analysis.unsupported_libraries.append(f"{lib_name} (unknown library)")
-        
+
         # Check for conflicts
         analysis.conflicts = self._find_conflicts(found_libraries)
-        
+
         # Generate warnings and suggestions
         analysis.warnings = self._generate_warnings(found_libraries, language)
         analysis.suggested_additions = self._suggest_additions(found_libraries, language)
-        
+
         return analysis
-    
+
     def _find_conflicts(self, libraries: List[LibraryInfo]) -> List[str]:
         """Find conflicting libraries in the tech stack."""
         conflicts = []
         lib_names = [lib.name for lib in libraries]
-        
+
         for lib in libraries:
-            for conflict in lib.conflicts:
-                if conflict in lib_names:
-                    conflicts.append(f"{lib.name} conflicts with {conflict}")
-        
+            if lib.conflicts:
+                for conflict in lib.conflicts:
+                    if conflict in lib_names:
+                        conflicts.append(f"{lib.name} conflicts with {conflict}")
+
         return conflicts
-    
+
     def _generate_warnings(self, libraries: List[LibraryInfo], language: str) -> List[str]:
         """Generate warnings about the tech stack composition."""
         warnings = []
         categories = [lib.category for lib in libraries]
-        
+
         # Check for missing essential components
         if LibraryCategory.RENDERING in categories and LibraryCategory.WINDOWING not in categories:
             warnings.append("Rendering library found but no windowing library - consider adding SDL2 or GLFW")
-        
+
         if LibraryCategory.PHYSICS in categories and LibraryCategory.MATH not in categories:
             if language == "C++":
                 warnings.append("Physics library found but no math library - consider adding GLM")
             elif language == "Python":
                 warnings.append("Physics library found but no math library - consider adding NumPy")
-        
+
         return warnings
-    
+
     def _suggest_additions(self, libraries: List[LibraryInfo], language: str) -> List[str]:
         """Suggest additional libraries that might be useful."""
         suggestions = []
         categories = [lib.category for lib in libraries]
-        
+
         # Suggest common additions based on what's already included
         if LibraryCategory.RENDERING in categories:
             if LibraryCategory.ASSETS not in categories:
                 if language == "C++":
                     suggestions.append("Consider adding Assimp for 3D model loading")
                     suggestions.append("Consider adding stb_image for texture loading")
-        
+
         if len(libraries) > 2 and LibraryCategory.UI not in categories:
             if language == "C++":
                 suggestions.append("Consider adding Dear ImGui for debug UI")
-        
+
         return suggestions
-    
+
     def get_available_libraries(self, language: Optional[str] = None) -> Dict[str, LibraryInfo]:
         """Get all available libraries, optionally filtered by language."""
         if language is None:
             return self.library_db
-        
-        return {
-            name: info for name, info in self.library_db.items()
-            if language in info.languages
-        }
-    
-    def search_libraries(self, 
-                        language: Optional[str] = None, 
-                        category: Optional[LibraryCategory] = None,
-                        search_term: Optional[str] = None) -> Dict[str, LibraryInfo]:
+
+        return {name: info for name, info in self.library_db.items() if language in info.languages}
+
+    def search_libraries(
+        self,
+        language: Optional[str] = None,
+        category: Optional[LibraryCategory] = None,
+        search_term: Optional[str] = None,
+    ) -> Dict[str, LibraryInfo]:
         """Search libraries by various criteria."""
         results = self.library_db.copy()
-        
+
         if language:
-            results = {
-                name: info for name, info in results.items()
-                if language in info.languages
-            }
-        
+            results = {name: info for name, info in results.items() if language in info.languages}
+
         if category:
-            results = {
-                name: info for name, info in results.items()
-                if info.category == category
-            }
-        
+            results = {name: info for name, info in results.items() if info.category == category}
+
         if search_term:
             search_lower = search_term.lower()
             results = {
-                name: info for name, info in results.items()
-                if (search_lower in name.lower() or 
-                    search_lower in info.display_name.lower() or
-                    search_lower in info.description.lower())
+                name: info
+                for name, info in results.items()
+                if (
+                    search_lower in name.lower()
+                    or search_lower in info.display_name.lower()
+                    or search_lower in info.description.lower()
+                )
             }
-        
+
         return results
 
 

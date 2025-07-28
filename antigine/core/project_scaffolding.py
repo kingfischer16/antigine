@@ -602,7 +602,7 @@ A {analysis.language} game project built with {lib_list}.
 """
 
         for lib_name, url in analysis.documentation_urls.items():
-            readme_content += f"- [{lib_name}]({url})\\n"
+            readme_content += f"- [{lib_name}]({url})\n"
 
         readme_content += f"""
 ## Getting Started

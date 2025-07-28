@@ -100,7 +100,7 @@ def _get_programming_language(args: Namespace) -> str:
     """
     # Check if language was provided via command line
     if hasattr(args, "language") and args.language:
-        return args.language
+        return str(args.language)
 
     # Available languages based on tech stack database
     available_languages = ["Lua", "Python", "C++", "C"]
@@ -129,7 +129,7 @@ def _get_tech_stack(args: Namespace, language: str) -> str:
     """
     # Check if tech_stack was provided via command line
     if hasattr(args, "tech_stack") and args.tech_stack:
-        return args.tech_stack
+        return str(args.tech_stack)
 
     # Get available libraries for the selected language
     available_libraries = tech_stack_manager.get_available_libraries(language)

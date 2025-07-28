@@ -1,34 +1,32 @@
 # Fix Broken Imports
 
-I'll help fix import statements that broke after moving or renaming files.
+Please help fix import statements that broke after moving, editing, or renaming files.
 
-First, let me analyze your project structure and identify any broken imports. I'll:
+First, analyze the project structure and identify any broken imports. Do this by:
 
-1. **Detect your project type** from file patterns and configurations
-2. **Identify import/include patterns** specific to your language
+1. **Detecting the project type** from file patterns and configurations
+2. **Identify import/include patterns** specific to the project language
 3. **Check which imports are broken** by verifying if referenced files exist
 4. **Find where files were moved** by searching for matching filenames
 
-Based on what I find, I'll:
-- Detect the import patterns used in your project
-- Handle the specific syntax for your language
-- Preserve your existing code style
+Based on what you find, you should:
+- Detect the import patterns used in the project
+- Handle the specific syntax for the project language
+- Preserve the existing code style and formatting
 
-For each broken import, I'll:
-1. Show you the broken import with its location
+For each broken import, please:
+1. Show the broken import with its location
 2. Search for the moved/renamed file
 3. Check for ambiguous matches
 
 **For ambiguous cases:**
-- If multiple files could match the import
-- I'll list all possible options
-- Show you the context
+- List all possible options
+- Show the context
 - Ask which file is the correct target
 - Never guess when unsure
 
 **Error handling:**
-- If an import can't be resolved
-- I'll report why it failed
+- Report why the import cannot be resolved
 - Continue with other fixable imports
 - Suggest manual fixes if needed
 

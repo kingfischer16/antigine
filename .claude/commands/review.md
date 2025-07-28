@@ -1,6 +1,6 @@
 # Code Review
 
-Review the project code for potential issues.
+Please review the project code for potential issues.
 
 Examine the files we've been working on and any recent changes for:
 
@@ -23,15 +23,16 @@ Examine the files we've been working on and any recent changes for:
    - Dead code
    - Overly complex functions
    - Missing error handling
+   - F-strings missing placeholders
 
-For each issue I find, I'll:
-- Show you exactly where it is
+For each issue I find, please:
+- Show me exactly where it is
 - Explain why it's a problem
 - Suggest how to fix it
 
-If I encounter errors during review:
-- I'll continue checking other files
+If you encounter errors during review:
+- Please continue checking other files
 - Report what couldn't be analyzed
-- Focus on the code I can access
+- Focus on the code you can access
 
-This review focuses on real problems that could affect your application.
+This review focuses on real problems that could affect our application.

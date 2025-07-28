@@ -11,7 +11,6 @@ This module cannot import from other modules in this package to avoid circular d
 # Imports
 import sqlite3
 import os
-from typing import Optional
 
 
 # Database schema SQL statements
@@ -20,7 +19,10 @@ SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS features (
     feature_id TEXT PRIMARY KEY,
     type TEXT NOT NULL CHECK (type IN ('new_feature', 'bug_fix', 'refactor', 'enhancement')),
-    status TEXT NOT NULL CHECK (status IN ('requested', 'in_review', 'awaiting_implementation', 'awaiting_validation', 'validated', 'superseded')),
+    status TEXT NOT NULL CHECK (status IN (
+        'requested', 'in_review', 'awaiting_implementation',
+        'awaiting_validation', 'validated', 'superseded'
+    )),
     title TEXT NOT NULL,
     description TEXT,
     keywords TEXT, -- JSON array as text
@@ -45,7 +47,10 @@ CREATE TABLE IF NOT EXISTS feature_relations (
 CREATE TABLE IF NOT EXISTS feature_documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     feature_id TEXT NOT NULL,
-    document_type TEXT NOT NULL CHECK (document_type IN ('feature_request', 'technical_architecture_specification', 'feature_implementation_plan')),
+    document_type TEXT NOT NULL CHECK (document_type IN (
+        'feature_request', 'technical_architecture_specification',
+        'feature_implementation_plan'
+    )),
     content TEXT NOT NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
@@ -65,27 +70,27 @@ CREATE INDEX IF NOT EXISTS idx_feature_documents_type ON feature_documents(docum
 def initialize_database(db_path: str) -> None:
     """
     Initialize the SQLite database with the required schema.
-    
+
     Args:
         db_path (str): Path to the SQLite database file.
-        
+
     Raises:
         sqlite3.Error: If database initialization fails.
     """
     # Create directory if it doesn't exist
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
-    
+
     try:
         with sqlite3.connect(db_path) as conn:
             # Enable foreign key constraints
             conn.execute("PRAGMA foreign_keys = ON")
-            
+
             # Execute schema creation
             conn.executescript(SCHEMA_SQL)
-            
+
             # Commit changes
             conn.commit()
-            
+
     except sqlite3.Error as e:
         raise sqlite3.Error(f"Failed to initialize database at {db_path}: {e}")
 
@@ -93,28 +98,28 @@ def initialize_database(db_path: str) -> None:
 def get_connection(db_path: str) -> sqlite3.Connection:
     """
     Get a connection to the SQLite database with proper configuration.
-    
+
     Args:
         db_path (str): Path to the SQLite database file.
-        
+
     Returns:
         sqlite3.Connection: Configured database connection.
-        
+
     Raises:
         sqlite3.Error: If connection fails.
     """
     if not os.path.exists(db_path):
         raise sqlite3.Error(f"Database file does not exist: {db_path}")
-    
+
     try:
         conn = sqlite3.connect(db_path)
-        
+
         # Configure connection
         conn.execute("PRAGMA foreign_keys = ON")
         conn.row_factory = sqlite3.Row  # Enable dict-like row access
-        
+
         return conn
-        
+
     except sqlite3.Error as e:
         raise sqlite3.Error(f"Failed to connect to database at {db_path}: {e}")
 
@@ -122,25 +127,27 @@ def get_connection(db_path: str) -> sqlite3.Connection:
 def validate_database_schema(db_path: str) -> bool:
     """
     Validate that the database has the expected schema.
-    
+
     Args:
         db_path (str): Path to the SQLite database file.
-        
+
     Returns:
         bool: True if schema is valid, False otherwise.
     """
-    expected_tables = {'features', 'feature_relations', 'feature_documents'}
-    
+    expected_tables = {"features", "feature_relations", "feature_documents"}
+
     try:
         with get_connection(db_path) as conn:
-            cursor = conn.execute("""
-                SELECT name FROM sqlite_master 
+            cursor = conn.execute(
+                """
+                SELECT name FROM sqlite_master
                 WHERE type='table' AND name NOT LIKE 'sqlite_%'
-            """)
-            
+            """
+            )
+
             existing_tables = {row[0] for row in cursor.fetchall()}
-            
+
             return expected_tables.issubset(existing_tables)
-            
+
     except sqlite3.Error:
         return False

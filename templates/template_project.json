@@ -5,9 +5,9 @@
     "project_version": "0.0.0",
     "project_repository_url": "https://github...",
     "project_language": "Lua",
-    "engine_name": "Love2D",
-    "engine_repository_url": "https://github.com/love2d/love",
-    "engine_documentation_url": "https://love2d.org/wiki/Main_Page",
-    "engine_api_reference_url": "https://love2d.org/wiki/love",
-    "engine_examples_url": "https://love2d.org/wiki/Category:Games"
+    "tech_stack": "Love2D",
+    "tech_stack_repository_url": "https://github.com/love2d/love",
+    "tech_stack_documentation_url": "https://love2d.org/wiki/Main_Page",
+    "tech_stack_api_reference_url": "https://love2d.org/wiki/love",
+    "tech_stack_examples_url": "https://love2d.org/wiki/Category:Games"
 }

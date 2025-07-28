@@ -8,9 +8,6 @@ These chains are designed to facilitate common workflows and can be imported and
 Chains will be implemented here as the multi-agent system is developed.
 """
 
-# Imports
-from langchain_core.output_parsers import JsonOutputParser
-
 # Import models and prompts when chains are implemented
 # from .models import chat_model
 # from .prompts import [prompt_functions]
@@ -20,7 +17,7 @@ from langchain_core.output_parsers import JsonOutputParser
 
 # Chains for the 9-agent Antigine system will be implemented here:
 # - GDD Creator Agent chain
-# - Module Planner Agent chain  
+# - Module Planner Agent chain
 # - Feature Request Writer Agent chain
 # - Technical Architecture Writer Agent chain
 # - Technical Architecture Reviewer Agent chain
@@ -28,4 +25,3 @@ from langchain_core.output_parsers import JsonOutputParser
 # - Implementation Plan Reviewer Agent chain
 # - Code Writer Agent chain
 # - Code Reviewer Agent chain
-

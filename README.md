@@ -11,14 +11,20 @@ It is not a "game-from-prompt" generator; it is a system that accelerates develo
 
 ## Core Philosophy: The Agentic "Anti-Engine"
 
-Antigine (a portmanteau of "anti-engine") operates on an **agile, iterative philosophy** where the **codebase is the single source of truth**. The system evolves a living, playable game by integrating new features one at a time into the existing, functional codebase. The human's role is to be the Creative Director, providing new feature ideas and changes, while the agentic system handles the technical details.
+Antigine (a portmanteau of "anti-engine") operates on an **agile, iterative philosophy** guided by two complementary principles:
+
+1. **The codebase is the technical source of truth** - What actually runs and plays is what matters
+2. **"Follow the fun"** - Playtesting and player feedback drive evolution, not rigid documentation
+
+The system evolves a living, playable game by integrating new features one at a time into the existing, functional codebase. The human's role is to be the Creative Director, providing new feature ideas and changes based on what makes the game more engaging, while the agentic system handles the technical details.
 
 ### Key Features
 - **Multi-Agent Architecture:** Nine specialized AI agents handle different aspects of development, from GDD creation to code review.
 - **Stateful Orchestration:** Uses LangGraph to manage complex workflows with mandatory human review at each stage.
 - **Framework Agnostic:** Initially supports Lua/Love2D with architecture designed for future language expansion.
-- **Tiered Project Management:** GDD → Modules → Feature Requests → Implementation, ensuring controlled, incremental development.
+- **Creative Scaffolding:** GDD → Modules → Feature Requests provide initial creative direction, but evolve based on playtesting.
 - **Living Codebase:** Each feature integration maintains a functional, playable game state.
+- **Playtest-Driven Development:** Features and design evolve based on what's actually fun to play, not rigid planning documents.
 
 ## System Architecture
 
@@ -55,10 +61,13 @@ At project start, there is no code or documentation present. The user passes a G
 ### 2. Planning
 The Module Planner agent converts the GDD into architectural modules documented in `modules.md`. Each module represents a major game system with associated feature lists.
 
+**Important**: The GDD and modules serve as **creative scaffolding** - they help clarify initial vision but are living documents that evolve based on playtesting feedback. They guide early development but don't constrain later iterations.
+
 The Feature Request Writer agent then creates detailed, implementable feature requests from these modules. Features are designed to be:
 - **Small and incremental** for easy review and integration
 - **Independently functional** to maintain playable game state
 - **Created on-demand** to avoid irrelevant or duplicate work
+- **Adaptable** - can be modified or replaced based on gameplay discoveries
 
 Feature requests are stored in `ledger.db` with full metadata and linked to their parent modules and dependencies.
 
@@ -75,9 +84,12 @@ Each approved document is stored in `ledger.db` and linked to the feature reques
 
 ## How to use Antigine
 1. **Start the CLI** and choose to create a new project or select an existing one
-2. **Project Setup**: Provide Git repo folder location and create/import GDD  
+2. **Project Setup**: Provide Git repo folder location and create/import GDD as initial creative foundation
 3. **Planning**: Convert GDD to modules, then create feature requests as needed (recommended: one at a time for agile development)
 4. **Implementation**: Select a feature and proceed through the 5-stage implementation pipeline, with mandatory human review after each stage
+5. **Playtest & Iterate**: Test your game frequently - let player feedback and fun factor guide which features to build next, modify, or abandon
+
+**Remember**: Your GDD and modules are starting points, not contracts. Follow the fun and let your game evolve naturally through the development process.
 
 ## Contributing
 

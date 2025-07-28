@@ -177,7 +177,10 @@ class SetupWizard:
                 category = prompt_for_choice("\\nSelect a category to browse", [cat.value for cat in categories])
 
                 # Find the enum value
-                selected_category = next(cat for cat in categories if cat.value == category)
+                selected_category = next((cat for cat in categories if cat.value == category), None)
+                if selected_category is None:
+                    print_warning(f"Invalid category selected: {category}. Please try again.")
+                    continue
 
                 # Get libraries in this category for the language
                 category_libs = self.tech_stack_manager.search_libraries(language=language, category=selected_category)

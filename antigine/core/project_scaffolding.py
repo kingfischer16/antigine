@@ -511,7 +511,7 @@ target_link_libraries({project_name}
 
     def _generate_gitignore(self, analysis: TechStackAnalysis) -> str:
         """Generate .gitignore based on language and tech stack."""
-        gitignore_content = "# Antigine Project\\n.antigine/\\n\\n"
+        gitignore_content = "# Antigine Project\n.antigine/\n\n"
 
         if analysis.language == "C++":
             gitignore_content += """# C++ Build artifacts

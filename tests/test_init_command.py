@@ -10,6 +10,7 @@ import unittest
 import tempfile
 import os
 import json
+import shutil
 from unittest.mock import patch, MagicMock
 from argparse import Namespace
 from antigine.cli.commands.init import handle_init, _get_programming_language, _get_tech_stack
@@ -136,7 +137,6 @@ class TestInitCommandIntegration(unittest.TestCase):
     def tearDown(self):
         """Clean up temporary directory and restore working directory."""
         os.chdir(self.original_cwd)
-        import shutil
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @patch('antigine.cli.commands.init.ProjectSetupManager')

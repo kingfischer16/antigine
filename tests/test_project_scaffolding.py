@@ -9,6 +9,7 @@ Tests folder structure generation and file content creation logic.
 import unittest
 import tempfile
 import os
+import shutil
 from pathlib import Path
 from antigine.core.project_scaffolding import ProjectScaffolder
 from antigine.core.tech_stacks import TechStackManager
@@ -264,8 +265,6 @@ class TestProjectScaffolderIntegration(unittest.TestCase):
 
     def tearDown(self):
         """Clean up temporary directory."""
-        import shutil
-
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_scaffold_project_love2d_creates_files(self):

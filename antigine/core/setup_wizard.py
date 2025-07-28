@@ -89,7 +89,7 @@ class SetupWizard:
 
     def _select_tech_stack(self, language: str) -> str:
         """Interactive tech stack selection based on language."""
-        print_info(f"\\nStep 3: Tech Stack Selection ({language})")
+        print_info(f"\nStep 3: Tech Stack Selection ({language})")
 
         # Show different paths based on user preference
         approach = prompt_for_choice(

@@ -10,6 +10,7 @@ import unittest
 import tempfile
 import os
 import json
+import shutil
 from datetime import datetime
 from antigine.core.database import initialize_database, get_connection, validate_database_schema
 from antigine.managers.ProjectLedgerManager import ProjectLedgerManager
@@ -100,8 +101,6 @@ class TestProjectLedgerManager(unittest.TestCase):
 
     def tearDown(self):
         """Clean up temporary directory."""
-        import shutil
-
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_manager_initialization(self):
@@ -347,8 +346,6 @@ class TestProjectLedgerManager(unittest.TestCase):
             with self.assertRaises(Exception):  # Could be sqlite3.Error or other
                 ProjectLedgerManager(temp_dir)
         finally:
-            import shutil
-
             shutil.rmtree(temp_dir, ignore_errors=True)
 
 

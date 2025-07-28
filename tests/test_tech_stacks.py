@@ -7,7 +7,12 @@ Tests the core logic of TechStackManager without side effects.
 """
 
 import unittest
-from antigine.core.tech_stacks import TechStackManager, LibraryCategory
+from antigine.core.tech_stacks import (
+    TechStackManager, 
+    LibraryCategory, 
+    get_default_tech_stack, 
+    resolve_tech_stack_name
+)
 
 
 class TestTechStackManager(unittest.TestCase):
@@ -352,8 +357,6 @@ class TestTechStackAliases(unittest.TestCase):
 
     def test_get_default_tech_stack(self):
         """Test getting default tech stacks for different languages."""
-        from antigine.core.tech_stacks import get_default_tech_stack
-
         self.assertEqual(get_default_tech_stack("Lua"), "Love2D")
         self.assertEqual(get_default_tech_stack("Python"), "Pygame")
         self.assertEqual(get_default_tech_stack("C++"), "SDL2+OpenGL")
@@ -361,16 +364,12 @@ class TestTechStackAliases(unittest.TestCase):
 
     def test_get_default_tech_stack_unknown_language(self):
         """Test that unknown languages raise appropriate error."""
-        from antigine.core.tech_stacks import get_default_tech_stack
-
         with self.assertRaises(ValueError) as context:
             get_default_tech_stack("Unknown")
         self.assertIn("No default tech stack configured", str(context.exception))
 
     def test_resolve_tech_stack_name_single_alias(self):
         """Test resolving single tech stack aliases."""
-        from antigine.core.tech_stacks import resolve_tech_stack_name
-
         self.assertEqual(resolve_tech_stack_name("love2d"), "Love2D")
         self.assertEqual(resolve_tech_stack_name("pygame"), "Pygame")
         self.assertEqual(resolve_tech_stack_name("sdl2"), "SDL2")
@@ -378,8 +377,6 @@ class TestTechStackAliases(unittest.TestCase):
 
     def test_resolve_tech_stack_name_multi_library(self):
         """Test resolving multi-library tech stacks with aliases."""
-        from antigine.core.tech_stacks import resolve_tech_stack_name
-
         # Test combination with aliases
         result = resolve_tech_stack_name("sdl2+opengl")
         self.assertEqual(result, "SDL2+OpenGL")
@@ -390,8 +387,6 @@ class TestTechStackAliases(unittest.TestCase):
 
     def test_resolve_tech_stack_name_no_alias(self):
         """Test that unknown names are returned as-is."""
-        from antigine.core.tech_stacks import resolve_tech_stack_name
-
         self.assertEqual(resolve_tech_stack_name("CustomLib"), "CustomLib")
         self.assertEqual(resolve_tech_stack_name("SDL2+CustomLib"), "SDL2+CustomLib")
 

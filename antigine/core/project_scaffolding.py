@@ -495,17 +495,17 @@ target_link_libraries({project_name}
 
         # Add target_link_libraries based on libraries
         if "SDL2" in lib_names:
-            cmake_content += "    SDL2::SDL2\\n"
+            cmake_content += "    SDL2::SDL2\n"
         if "OpenGL" in lib_names:
-            cmake_content += "    OpenGL::GL\\n"
+            cmake_content += "    OpenGL::GL\n"
         if "GLFW" in lib_names:
-            cmake_content += "    glfw\\n"
+            cmake_content += "    glfw\n"
         if "Bullet" in lib_names:
-            cmake_content += "    ${BULLET_LIBRARIES}\\n"
+            cmake_content += "    ${BULLET_LIBRARIES}\n"
         if "Assimp" in lib_names:
-            cmake_content += "    assimp\\n"
+            cmake_content += "    assimp\n"
 
-        cmake_content += ")\\n"
+        cmake_content += ")\n"
 
         return cmake_content
 

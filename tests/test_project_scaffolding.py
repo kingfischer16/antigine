@@ -276,9 +276,9 @@ class TestProjectScaffolderIntegration(unittest.TestCase):
         self.assertGreater(len(result["created_folders"]), 0)
 
         # Check for the presence of key folders (use flexible path matching)
-        self.assertTrue(any("sprites" in folder for folder in result["created_folders"]))
-        self.assertTrue(any("images" in folder for folder in result["created_folders"]))
-        self.assertTrue(any("audio" in folder for folder in result["created_folders"]))
+        self.assertTrue(any(Path(folder).name == "sprites" for folder in result["created_folders"]))
+        self.assertTrue(any(Path(folder).name == "images" for folder in result["created_folders"]))
+        self.assertTrue(any(Path(folder).name == "audio" for folder in result["created_folders"]))
 
         # Check that files were created
         self.assertGreater(len(result["created_files"]), 0)

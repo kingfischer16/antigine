@@ -612,10 +612,10 @@ DEFAULT_TECH_STACKS = {
 
 # Backwards compatibility and common aliases
 TECH_STACK_ALIASES = {
-    "love2d": "Love2D",  # Handle lowercase input
-    "pygame": "Pygame",  # Handle lowercase input
-    "sdl2": "SDL2",  # Handle lowercase input
-    "opengl": "OpenGL",  # Handle lowercase input
+    "love2d": "Love2D",  # Canonical name for Love2D
+    "pygame": "Pygame",  # Canonical name for Pygame
+    "sdl2": "SDL2",  # Canonical name for SDL2
+    "opengl": "OpenGL",  # Canonical name for OpenGL
 }
 
 

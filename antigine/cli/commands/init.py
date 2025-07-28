@@ -7,10 +7,12 @@ CLI command handler for project initialization. Delegates to ProjectSetupManager
 
 import os
 from argparse import Namespace
+from typing import cast
 
 from ...managers.ProjectSetupManager import ProjectSetupManager
 from ..utils.output import print_success, print_error, print_info
-from ..utils.validation import prompt_for_input, detect_project_directory
+from ..utils.validation import prompt_for_input, prompt_for_choice, detect_project_directory
+from ...core.tech_stacks import resolve_tech_stack_name, tech_stack_manager
 
 
 def handle_init(args: Namespace) -> int:
@@ -38,9 +40,14 @@ def handle_init(args: Namespace) -> int:
         if not project_name:
             project_name = prompt_for_input("Enter project name", default=os.path.basename(project_dir))
 
-        # TODO: Tech stack selection will be implemented in Phase 2
-        # For now, we'll use a placeholder
-        tech_stack = args.tech_stack or "love2d"
+        # Get programming language - required for project setup
+        language = _get_programming_language(args)
+
+        # Get tech stack - required for project setup
+        tech_stack = _get_tech_stack(args, language)
+
+        # Resolve any aliases or case issues in the tech stack name
+        tech_stack = resolve_tech_stack_name(tech_stack)
 
         print_info(f"Initializing Antigine project '{project_name}' in {project_dir}")
         print_info(f"Tech Stack: {tech_stack}")
@@ -80,3 +87,67 @@ def handle_init(args: Namespace) -> int:
     except Exception as e:
         print_error(f"Failed to initialize project: {e}")
         return 1
+
+
+def _get_programming_language(args: Namespace) -> str:
+    """
+    Get programming language from args or prompt user for selection.
+
+    Args:
+        args: Parsed command-line arguments
+
+    Returns:
+        str: Selected programming language
+    """
+    # Check if language was provided via command line
+    if hasattr(args, "language") and args.language:
+        return args.language
+
+    # Available languages based on tech stack database
+    available_languages = ["Lua", "Python", "C++", "C"]
+
+    print_info("Please select a programming language for your project:")
+    for i, lang in enumerate(available_languages, 1):
+        print_info(f"  {i}. {lang}")
+
+    language = prompt_for_choice("Select programming language", choices=available_languages, default=None)  # type: ignore
+
+    return language
+
+
+def _get_tech_stack(args: Namespace, language: str) -> str:
+    """
+    Get tech stack from args or prompt user for selection.
+
+    Args:
+        args: Parsed command-line arguments
+        language: Selected programming language
+
+    Returns:
+        str: Selected tech stack
+    """
+    # Check if tech_stack was provided via command line
+    if hasattr(args, "tech_stack") and args.tech_stack:
+        return args.tech_stack
+
+    # Get available libraries for the selected language
+    available_libraries = tech_stack_manager.get_available_libraries(language)
+
+    print_info(f"Available libraries for {language}:")
+    lib_names = list(available_libraries.keys())
+    for i, lib_name in enumerate(lib_names, 1):
+        lib_info = available_libraries[lib_name]
+        print_info(f"  {i}. {lib_name} - {lib_info.description}")
+
+    print_info("")
+    print_info("You can specify:")
+    print_info("  - A single library (e.g., 'Love2D', 'Pygame', 'SDL2')")
+    print_info("  - Multiple libraries separated by '+' (e.g., 'SDL2+OpenGL+GLM')")
+
+    tech_stack = prompt_for_input(f"Enter tech stack for {language}", default=None)  # type: ignore
+
+    if not tech_stack:
+        print_error("Tech stack is required. Please specify at least one library.")
+        raise ValueError("Tech stack input is required")
+
+    return tech_stack

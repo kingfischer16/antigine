@@ -65,7 +65,29 @@ python -c "from antigine.run import main; main(['--version'])"
 antigine 0.1.0
 ```
 
-### Test 1.3: Subcommand Help
+### Test 1.3: Init Command Help
+**Description:** Verify init command help shows new language argument
+**Command:**
+```bash
+python -c "from antigine.run import main; main(['init', '--help'])"
+```
+**Expected Output:**
+```
+usage: antigine init [-h] [--name NAME] [--language LANGUAGE]
+                     [--tech-stack TECH_STACK]
+
+options:
+  -h, --help            show this help message and exit
+  --name NAME           Project name (interactive prompt if not provided)
+  --language LANGUAGE   Programming language (e.g. 'Lua', 'Python', 'C++',
+                        'C') - interactive prompt if not provided
+  --tech-stack TECH_STACK
+                        Game tech stack - single framework (e.g. 'Love2D') or
+                        multiple libraries separated by '+' (e.g.
+                        'SDL2+OpenGL+GLM')
+```
+
+### Test 1.4: Feature Subcommand Help
 **Description:** Verify feature subcommand help works
 **Command:**
 ```bash
@@ -88,8 +110,8 @@ options:
 
 ## Project Initialization
 
-### Test 2.1: Basic Project Initialization
-**Description:** Initialize a new project with basic parameters
+### Test 2.1: Basic Project Initialization with All Args
+**Description:** Initialize a new project with all parameters provided via command line
 **Setup:**
 ```bash
 mkdir "D:\TestProjects\AntigineManualTest1"
@@ -97,7 +119,7 @@ cd "D:\TestProjects\AntigineManualTest1"
 ```
 **Command:**
 ```bash
-python -c "from antigine.run import main; main(['init', '--name', 'TestGame', '--tech-stack', 'Love2D'])"
+python -c "from antigine.run import main; main(['init', '--name', 'TestGame', '--language', 'Lua', '--tech-stack', 'Love2D'])"
 ```
 **Expected Output:**
 ```
@@ -122,7 +144,7 @@ cd "D:\TestProjects\AntigineManualTest2"
 ```
 **Command:**
 ```bash
-python -c "from antigine.run import main; main(['init', '--name', 'My3DGame', '--tech-stack', 'SDL2+OpenGL+GLM+Assimp'])"
+python -c "from antigine.run import main; main(['init', '--name', 'My3DGame', '--language', 'C++', '--tech-stack', 'SDL2+OpenGL+GLM+Assimp'])"
 ```
 **Expected Output:**
 ```
@@ -138,7 +160,95 @@ python -c "from antigine.run import main; main(['init', '--name', 'My3DGame', '-
 ```
 **Verify:** Check that C++ project structure is created with `CMakeLists.txt`, `src/main.cpp`, and appropriate asset folders
 
-### Test 2.3: Project Already Exists Error
+### Test 2.3: Interactive Language and Tech Stack Selection
+**Description:** Test the interactive prompts for language and tech stack selection
+**Setup:**
+```bash
+mkdir "D:\TestProjects\AntigineManualTest3"
+cd "D:\TestProjects\AntigineManualTest3"
+```
+**Command:**
+```bash
+python -c "from antigine.run import main; main(['init', '--name', 'InteractiveGame'])"
+```
+**Interactive Steps:**
+1. When prompted for programming language, enter `2` (Python)
+2. When prompted for tech stack, enter `Pygame`
+
+**Expected Output:**
+```
+Please select a programming language for your project:
+  1. Lua
+  2. Python
+  3. C++  
+  4. C
+
+Select programming language
+Enter choice [1-4]: 2
+
+Available libraries for Python:
+  1. Pygame - Cross-platform set of Python modules for writing video games
+  2. NumPy - Fundamental package for scientific computing with Python
+
+You can specify:
+  - A single library (e.g., 'Love2D', 'Pygame', 'SDL2')
+  - Multiple libraries separated by '+' (e.g., 'SDL2+OpenGL+GLM')
+
+Enter tech stack for Python: Pygame
+
+[INFO] Initializing Antigine project 'InteractiveGame' in D:\TestProjects\AntigineManualTest3
+[INFO] Tech Stack: Pygame
+[INFO] Creating project folders...
+[INFO] Configuring project...
+[INFO] Initializing project ledger...
+[OK] Successfully initialized Antigine project 'InteractiveGame'!
+[INFO] Next steps:
+[INFO]   1. Run 'antigine status' to view project information
+[INFO]   2. Create your first feature with 'antigine feature create'
+```
+**Verify:** Check that Python project structure is created with `main.py`, `requirements.txt`
+
+### Test 2.4: Required Tech Stack Validation
+**Description:** Test that tech stack input is required and cannot be empty
+**Setup:**
+```bash
+mkdir "D:\TestProjects\AntigineManualTest4"
+cd "D:\TestProjects\AntigineManualTest4"
+```
+**Command:**
+```bash
+python -c "from antigine.run import main; main(['init', '--name', 'ValidationTest'])"
+```
+**Interactive Steps:**
+1. When prompted for programming language, enter `1` (Lua)
+2. When prompted for tech stack, press Enter (empty input)
+3. Should show error and re-prompt
+4. Enter `Love2D` when prompted again
+
+**Expected Output:**
+```
+Please select a programming language for your project:
+  1. Lua
+  2. Python
+  3. C++
+  4. C
+
+Select programming language
+Enter choice [1-4]: 1
+
+Available libraries for Lua:
+  1. Love2D - 2D game framework for Lua with built-in physics, audio, and graphics
+
+You can specify:
+  - A single library (e.g., 'Love2D', 'Pygame', 'SDL2')
+  - Multiple libraries separated by '+' (e.g., 'SDL2+OpenGL+GLM')
+
+Enter tech stack for Lua: 
+[ERROR] Tech stack is required. Please specify at least one library.
+Error: Tech stack input is required
+```
+
+### Test 2.5: Project Already Exists Error
 **Description:** Verify error when trying to init in existing project
 **Setup:** Use directory from Test 2.1
 **Command:**
@@ -460,6 +570,8 @@ After running manual tests, clean up test directories:
 # Remove test directories (be careful with paths!)
 rmdir /s "D:\TestProjects\AntigineManualTest1"
 rmdir /s "D:\TestProjects\AntigineManualTest2"
+rmdir /s "D:\TestProjects\AntigineManualTest3"
+rmdir /s "D:\TestProjects\AntigineManualTest4"
 rmdir /s "D:\TestProjects\EmptyFolder"
 rmdir /s "D:\TestProjects\ReadOnlyTest"
 rmdir /s "D:\TestProjects\Very"

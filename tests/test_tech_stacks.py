@@ -79,11 +79,10 @@ class TestTechStackManager(unittest.TestCase):
         self.assertTrue(any("OpenGL" in conflict and "Vulkan" in conflict for conflict in analysis.conflicts))
 
     def test_parse_empty_tech_stack(self):
-        """Test parsing empty tech stack."""
-        analysis = self.manager.parse_tech_stack("", "C++")
-
-        self.assertEqual(len(analysis.libraries), 0)
-        self.assertEqual(len(analysis.unsupported_libraries), 1)  # Empty string counts as unknown
+        """Test parsing empty tech stack raises appropriate error."""
+        with self.assertRaises(ValueError) as context:
+            self.manager.parse_tech_stack("", "C++")
+        self.assertIn("cannot be None or empty", str(context.exception))
 
     def test_parse_whitespace_handling(self):
         """Test parsing with extra whitespace."""
@@ -253,6 +252,148 @@ class TestLibraryDatabase(unittest.TestCase):
         self.assertEqual(self.db["GLM"].category, LibraryCategory.MATH)
         self.assertEqual(self.db["Bullet"].category, LibraryCategory.PHYSICS)
         self.assertEqual(self.db["Assimp"].category, LibraryCategory.ASSETS)
+
+    def test_input_validation_none_or_empty(self):
+        """Test input validation for None or empty strings."""
+        with self.assertRaises(ValueError) as context:
+            self.manager.parse_tech_stack("", "C++")
+        self.assertIn("cannot be None or empty", str(context.exception))
+
+        with self.assertRaises(ValueError) as context:
+            self.manager.parse_tech_stack(None, "C++")
+        self.assertIn("cannot be None or empty", str(context.exception))
+
+    def test_input_validation_wrong_type(self):
+        """Test input validation for non-string types."""
+        with self.assertRaises(TypeError) as context:
+            self.manager.parse_tech_stack(123, "C++")
+        self.assertIn("must be a string", str(context.exception))
+
+        with self.assertRaises(TypeError) as context:
+            self.manager.parse_tech_stack(["SDL2"], "C++")
+        self.assertIn("must be a string", str(context.exception))
+
+    def test_input_validation_whitespace_only(self):
+        """Test input validation for whitespace-only strings."""
+        with self.assertRaises(ValueError) as context:
+            self.manager.parse_tech_stack("   ", "C++")
+        self.assertIn("cannot be empty or contain only whitespace", str(context.exception))
+
+        with self.assertRaises(ValueError) as context:
+            self.manager.parse_tech_stack("\t\n", "C++")
+        self.assertIn("cannot be empty or contain only whitespace", str(context.exception))
+
+    def test_input_validation_only_delimiters(self):
+        """Test input validation for strings with only delimiter characters."""
+        with self.assertRaises(ValueError) as context:
+            self.manager.parse_tech_stack("+++", "C++")
+        self.assertIn("cannot contain only delimiter characters", str(context.exception))
+
+        with self.assertRaises(ValueError) as context:
+            self.manager.parse_tech_stack("+", "C++")
+        self.assertIn("cannot contain only delimiter characters", str(context.exception))
+
+    def test_input_validation_no_valid_libraries(self):
+        """Test input validation when no valid library names can be extracted."""
+        with self.assertRaises(ValueError) as context:
+            self.manager.parse_tech_stack("+ + +", "C++")
+        self.assertIn("No valid library names found", str(context.exception))
+
+    def test_input_validation_edge_cases_success(self):
+        """Test that edge cases with valid content still work."""
+        # Leading/trailing delimiters should be handled
+        analysis = self.manager.parse_tech_stack("+SDL2+", "C++")
+        self.assertEqual(len(analysis.libraries), 1)
+        self.assertEqual(analysis.libraries[0].name, "SDL2")
+
+        # Multiple consecutive delimiters should be handled
+        analysis = self.manager.parse_tech_stack("SDL2++OpenGL", "C++")
+        self.assertEqual(len(analysis.libraries), 2)
+        self.assertEqual(analysis.libraries[0].name, "SDL2")
+        self.assertEqual(analysis.libraries[1].name, "OpenGL")
+
+        # Whitespace around library names should be handled
+        analysis = self.manager.parse_tech_stack(" SDL2 + OpenGL ", "C++")
+        self.assertEqual(len(analysis.libraries), 2)
+        self.assertEqual(analysis.libraries[0].name, "SDL2")
+        self.assertEqual(analysis.libraries[1].name, "OpenGL")
+
+    def test_build_config_generation_cpp(self):
+        """Test build configuration generation for C++ projects."""
+        # Test default configuration
+        analysis = self.manager.parse_tech_stack("SDL2+OpenGL", "C++")
+        self.assertIsNotNone(analysis.build_config)
+        self.assertEqual(analysis.build_config.cmake_minimum_version, "3.16")
+        self.assertEqual(analysis.build_config.cmake_cxx_standard, "17")
+        self.assertIn("widely available", analysis.build_config.cmake_version_reason)
+
+    def test_build_config_generation_vulkan(self):
+        """Test build configuration for Vulkan projects requires newer CMake."""
+        analysis = self.manager.parse_tech_stack("Vulkan", "C++")
+        self.assertIsNotNone(analysis.build_config)
+        self.assertEqual(analysis.build_config.cmake_minimum_version, "3.21")
+        self.assertIn("Vulkan support", analysis.build_config.cmake_version_reason)
+
+    def test_build_config_generation_complex_libs(self):
+        """Test build configuration for complex libraries."""
+        analysis = self.manager.parse_tech_stack("SDL2+OpenGL+Assimp+Bullet", "C++")
+        self.assertIsNotNone(analysis.build_config)
+        self.assertEqual(analysis.build_config.cmake_minimum_version, "3.18")
+        self.assertIn("modern C++ libraries", analysis.build_config.cmake_version_reason)
+
+    def test_build_config_generation_python(self):
+        """Test that build configuration is not generated for Python projects."""
+        analysis = self.manager.parse_tech_stack("Pygame", "Python")
+        self.assertIsNone(analysis.build_config)
+
+
+class TestTechStackAliases(unittest.TestCase):
+    """Tests for tech stack aliases and default configurations."""
+
+    def test_get_default_tech_stack(self):
+        """Test getting default tech stacks for different languages."""
+        from antigine.core.tech_stacks import get_default_tech_stack
+
+        self.assertEqual(get_default_tech_stack("Lua"), "Love2D")
+        self.assertEqual(get_default_tech_stack("Python"), "Pygame")
+        self.assertEqual(get_default_tech_stack("C++"), "SDL2+OpenGL")
+        self.assertEqual(get_default_tech_stack("C"), "SDL2")
+
+    def test_get_default_tech_stack_unknown_language(self):
+        """Test that unknown languages raise appropriate error."""
+        from antigine.core.tech_stacks import get_default_tech_stack
+
+        with self.assertRaises(ValueError) as context:
+            get_default_tech_stack("Unknown")
+        self.assertIn("No default tech stack configured", str(context.exception))
+
+    def test_resolve_tech_stack_name_single_alias(self):
+        """Test resolving single tech stack aliases."""
+        from antigine.core.tech_stacks import resolve_tech_stack_name
+
+        self.assertEqual(resolve_tech_stack_name("love2d"), "Love2D")
+        self.assertEqual(resolve_tech_stack_name("pygame"), "Pygame")
+        self.assertEqual(resolve_tech_stack_name("sdl2"), "SDL2")
+        self.assertEqual(resolve_tech_stack_name("opengl"), "OpenGL")
+
+    def test_resolve_tech_stack_name_multi_library(self):
+        """Test resolving multi-library tech stacks with aliases."""
+        from antigine.core.tech_stacks import resolve_tech_stack_name
+
+        # Test combination with aliases
+        result = resolve_tech_stack_name("sdl2+opengl")
+        self.assertEqual(result, "SDL2+OpenGL")
+
+        # Test mixed case with whitespace
+        result = resolve_tech_stack_name("sdl2 + opengl")
+        self.assertEqual(result, "SDL2+OpenGL")
+
+    def test_resolve_tech_stack_name_no_alias(self):
+        """Test that unknown names are returned as-is."""
+        from antigine.core.tech_stacks import resolve_tech_stack_name
+
+        self.assertEqual(resolve_tech_stack_name("CustomLib"), "CustomLib")
+        self.assertEqual(resolve_tech_stack_name("SDL2+CustomLib"), "SDL2+CustomLib")
 
 
 if __name__ == "__main__":

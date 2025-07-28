@@ -281,6 +281,19 @@ LIBRARY_DATABASE: Dict[str, LibraryInfo] = {
 
 
 @dataclass
+class BuildSystemConfig:
+    """Configuration for build system generation."""
+
+    # CMake settings
+    cmake_minimum_version: str = "3.16"  # Default minimum version
+    cmake_cxx_standard: str = "17"  # C++ standard version
+    cmake_c_standard: str = "11"  # C standard version
+
+    # Documentation for version choices
+    cmake_version_reason: str = "3.16 supports modern CMake features and is widely available"
+
+
+@dataclass
 class TechStackAnalysis:
     """Result of analyzing a user-specified tech stack."""
 
@@ -293,6 +306,7 @@ class TechStackAnalysis:
     conflicts: List[str]
     warnings: List[str]
     suggested_additions: List[str]
+    build_config: Optional[BuildSystemConfig] = None
 
 
 class TechStackManager:
@@ -307,13 +321,42 @@ class TechStackManager:
 
         Args:
             tech_stack_input: User-specified tech stack (e.g., "SDL2+OpenGL+GLM")
+                             Must be a non-empty string with at least one valid library name.
+                             Handles edge cases like leading/trailing '+', consecutive '+',
+                             and whitespace around library names.
             language: Programming language (e.g., "C++")
 
         Returns:
             TechStackAnalysis with validation results and metadata
+
+        Raises:
+            ValueError: If tech_stack_input is None, empty, whitespace-only,
+                       contains only '+' characters, or has no valid library names
+            TypeError: If tech_stack_input is not a string
         """
-        # Parse library names
+        # Input validation
+        if not tech_stack_input:
+            raise ValueError("Tech stack input cannot be None or empty")
+
+        if not isinstance(tech_stack_input, str):
+            raise TypeError(f"Tech stack input must be a string, got {type(tech_stack_input)}")
+
+        # Normalize input by stripping whitespace
+        tech_stack_input = tech_stack_input.strip()
+
+        if not tech_stack_input:
+            raise ValueError("Tech stack input cannot be empty or contain only whitespace")
+
+        # Check for edge cases with only delimiters
+        if all(char in "+" for char in tech_stack_input):
+            raise ValueError("Tech stack input cannot contain only delimiter characters ('+')")
+
+        # Parse library names - filter out empty strings after splitting and stripping
         library_names = [lib.strip() for lib in tech_stack_input.split("+") if lib.strip()]
+
+        # Final validation - ensure we have at least one valid library name
+        if not library_names:
+            raise ValueError("No valid library names found in tech stack input")
 
         # Initialize analysis result
         analysis = TechStackAnalysis(
@@ -326,6 +369,7 @@ class TechStackManager:
             conflicts=[],
             warnings=[],
             suggested_additions=[],
+            build_config=None,
         )
 
         # Process each library
@@ -354,6 +398,9 @@ class TechStackManager:
         # Generate warnings and suggestions
         analysis.warnings = self._generate_warnings(found_libraries, language)
         analysis.suggested_additions = self._suggest_additions(found_libraries, language)
+
+        # Generate build system configuration
+        analysis.build_config = self._generate_build_config(found_libraries, language)
 
         return analysis
 
@@ -440,6 +487,136 @@ class TechStackManager:
             }
 
         return results
+
+    def _generate_build_config(self, libraries: List[LibraryInfo], language: str) -> Optional[BuildSystemConfig]:
+        """Generate build system configuration based on tech stack and language."""
+        if language not in ["C++", "C"]:
+            return None  # Only generate build config for C/C++ projects
+
+        config = BuildSystemConfig()
+        lib_names = [lib.name for lib in libraries]
+
+        # Adjust CMake version based on library requirements
+        if "Vulkan" in lib_names:
+            # Vulkan requires newer CMake for proper FindVulkan module
+            config.cmake_minimum_version = "3.21"
+            config.cmake_version_reason = "3.21 required for modern Vulkan support and FindVulkan module"
+        elif any(lib in lib_names for lib in ["Assimp", "Bullet", "Dear ImGui"]):
+            # Complex libraries benefit from newer CMake features
+            config.cmake_minimum_version = "3.18"
+            config.cmake_version_reason = "3.18 provides better support for modern C++ libraries and find modules"
+        elif any(lib in lib_names for lib in ["SDL2", "GLFW", "OpenGL"]):
+            # Standard game development libraries work well with 3.16+
+            config.cmake_minimum_version = "3.16"
+            config.cmake_version_reason = "3.16 supports modern CMake features and is widely available"
+        else:
+            # Default for simple projects
+            config.cmake_minimum_version = "3.14"
+            config.cmake_version_reason = "3.14 provides good C++17 support and is available on most systems"
+
+        # Adjust C++ standard based on libraries
+        if any(lib in lib_names for lib in ["Vulkan", "Dear ImGui", "Assimp"]):
+            # Modern libraries often require C++17 or newer features
+            config.cmake_cxx_standard = "17"
+        elif any(lib in lib_names for lib in ["SDL2", "OpenGL", "GLFW"]):
+            # Game development libraries typically work well with C++17
+            config.cmake_cxx_standard = "17"
+        else:
+            # Conservative default
+            config.cmake_cxx_standard = "14"
+
+        return config
+
+    def create_custom_build_config(
+        self,
+        cmake_version: str = "3.16",
+        cxx_standard: str = "17",
+        c_standard: str = "11",
+        reason: str = "Custom configuration",
+    ) -> BuildSystemConfig:
+        """Create a custom build configuration with specified settings.
+
+        This allows users to override the automatic CMake version selection
+        for projects with specific requirements.
+
+        Args:
+            cmake_version: Minimum CMake version (e.g., "3.16", "3.21")
+            cxx_standard: C++ standard version (e.g., "14", "17", "20")
+            c_standard: C standard version (e.g., "11", "17")
+            reason: Documentation explaining why these versions were chosen
+
+        Returns:
+            BuildSystemConfig with custom settings
+        """
+        return BuildSystemConfig(
+            cmake_minimum_version=cmake_version,
+            cmake_cxx_standard=cxx_standard,
+            cmake_c_standard=c_standard,
+            cmake_version_reason=reason,
+        )
+
+
+def get_default_tech_stack(language: str) -> str:
+    """Get the default tech stack for a given language.
+
+    Args:
+        language: Programming language (e.g., "Lua", "Python", "C++")
+
+    Returns:
+        Default tech stack name that exists in the library database
+
+    Raises:
+        ValueError: If no default is available for the language
+    """
+    if language in DEFAULT_TECH_STACKS:
+        return DEFAULT_TECH_STACKS[language]
+    else:
+        raise ValueError(f"No default tech stack configured for language: {language}")
+
+
+def resolve_tech_stack_name(tech_stack_input: str) -> str:
+    """Resolve tech stack names, handling aliases and case variations.
+
+    Args:
+        tech_stack_input: User input that might use aliases or incorrect case
+
+    Returns:
+        Properly formatted tech stack name for use with library database
+    """
+    # Handle direct aliases
+    if tech_stack_input in TECH_STACK_ALIASES:
+        return TECH_STACK_ALIASES[tech_stack_input]
+
+    # Handle multi-library tech stacks with aliases
+    if "+" in tech_stack_input:
+        parts = [part.strip() for part in tech_stack_input.split("+")]
+        resolved_parts = []
+        for part in parts:
+            if part in TECH_STACK_ALIASES:
+                resolved_parts.append(TECH_STACK_ALIASES[part])
+            else:
+                resolved_parts.append(part)
+        return "+".join(resolved_parts)
+
+    # Return as-is if no alias found
+    return tech_stack_input
+
+
+# Configuration constants
+DEFAULT_TECH_STACKS = {
+    "Lua": "Love2D",  # Default for Lua projects
+    "Python": "Pygame",  # Default for Python projects
+    "C++": "SDL2+OpenGL",  # Default for C++ projects
+    "C": "SDL2",  # Default for C projects
+}
+
+# Backwards compatibility and common aliases
+TECH_STACK_ALIASES = {
+    "love2d": "Love2D",  # Handle lowercase input
+    "pygame": "Pygame",  # Handle lowercase input
+    "sdl2": "SDL2",  # Handle lowercase input
+    "opengl": "OpenGL",  # Handle lowercase input
+}
 
 
 # Global instance for use throughout the application

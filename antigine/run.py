@@ -40,6 +40,10 @@ Examples:
     init_parser = subparsers.add_parser("init", help="Initialize a new Antigine project")
     init_parser.add_argument("--name", help="Project name (interactive prompt if not provided)")
     init_parser.add_argument(
+        "--language",
+        help="Programming language (e.g. 'Lua', 'Python', 'C++', 'C') - interactive prompt if not provided",
+    )
+    init_parser.add_argument(
         "--tech-stack",
         help="Game tech stack - single framework (e.g. 'Love2D') or multiple libraries separated by '+' (e.g. 'SDL2+OpenGL+GLM')",
     )
@@ -128,8 +132,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         print("\nOperation cancelled by user", file=sys.stderr)
         return 130
 
+    except ImportError as e:
+        print(f"ImportError: {e}. Please ensure all required dependencies are installed.", file=sys.stderr)
+        return 1
+    
+    except PermissionError as e:
+        print(f"PermissionError: {e}. Please check your file permissions.", file=sys.stderr)
+        return 1
+    
     except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
+        print(f"An unexpected error occurred: {e}. Please report this issue.", file=sys.stderr)
         return 1
 
 

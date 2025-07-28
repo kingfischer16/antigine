@@ -453,10 +453,21 @@ end
         """Generate CMakeLists.txt for C++ projects."""
         lib_names = [lib.name for lib in analysis.libraries]
 
-        cmake_content = f"""cmake_minimum_required(VERSION 3.16)
+        # Use build configuration if available, otherwise fall back to defaults
+        if analysis.build_config:
+            cmake_version = analysis.build_config.cmake_minimum_version
+            cxx_standard = analysis.build_config.cmake_cxx_standard
+            version_reason = analysis.build_config.cmake_version_reason
+        else:
+            cmake_version = "3.16"
+            cxx_standard = "17"
+            version_reason = "Default version for C++ game development"
+
+        cmake_content = f"""# CMake version requirement: {version_reason}
+cmake_minimum_required(VERSION {cmake_version})
 project({project_name})
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD {cxx_standard})
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find packages

@@ -28,4 +28,4 @@ chat_model = ChatGoogleGenerativeAI(
 
 # Instantiate the embedding model
 # This model is used to convert text into embeddings for vector storage
-embedding_model = GoogleGenerativeAIEmbeddings(model=EMBEDDING_MODEL_NAME, verbose=False)
+embedding_model = GoogleGenerativeAIEmbeddings(model=EMBEDDING_MODEL_NAME)

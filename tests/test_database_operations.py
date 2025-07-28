@@ -11,6 +11,7 @@ import tempfile
 import os
 import json
 import shutil
+import sqlite3
 from contextlib import contextmanager
 from antigine.core.database import initialize_database, get_connection, validate_database_schema
 from antigine.managers.ProjectLedgerManager import ProjectLedgerManager

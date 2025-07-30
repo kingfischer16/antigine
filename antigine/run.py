@@ -80,6 +80,7 @@ Examples:
 
     # GDD command
     from .cli.commands.gdd import setup_gdd_parser
+
     setup_gdd_parser(subparsers)
 
     return parser

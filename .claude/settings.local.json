@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(python -m unittest:*)",
-      "Bash(python -m mypy:*)"
+      "Bash(python -m mypy:*)",
+      "Bash(python -m pytest tests/ -v --tb=short)",
+      "Bash(python tests:*)",
+      "Bash(python -m black:*)"
     ],
     "deny": []
   }

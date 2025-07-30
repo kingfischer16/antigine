@@ -15,14 +15,14 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGener
 
 # Model names to use
 EMBEDDING_MODEL_NAME = "gemini-embedding-001"
-LITE_MODEL_NAME = "gemini-2.5-flash-lite"    # Lightweight model for focused tasks
-STANDARD_MODEL_NAME = "gemini-2.5-flash"     # Balanced model for general use
-PRO_MODEL_NAME = "gemini-2.5-pro"            # Most capable model for complex tasks
+LITE_MODEL_NAME = "gemini-2.5-flash-lite"  # Lightweight model for focused tasks
+STANDARD_MODEL_NAME = "gemini-2.5-flash"  # Balanced model for general use
+PRO_MODEL_NAME = "gemini-2.5-pro"  # Most capable model for complex tasks
 
 # Variables
-LITE_MODEL_TEMPERATURE = 0.2      # Temperature for focused tasks
+LITE_MODEL_TEMPERATURE = 0.2  # Temperature for focused tasks
 STANDARD_MODEL_TEMPERATURE = 0.3  # Temperature for balanced creativity/focus
-PRO_MODEL_TEMPERATURE = 0.4       # Temperature for complex creative tasks
+PRO_MODEL_TEMPERATURE = 0.4  # Temperature for complex creative tasks
 
 # Instantiate model instances by complexity level
 lite_model = ChatGoogleGenerativeAI(

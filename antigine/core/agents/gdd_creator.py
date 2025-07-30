@@ -16,7 +16,7 @@ Philosophy:
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional, Tuple, TypedDict
 from dataclasses import dataclass, asdict
 from enum import Enum
 
@@ -31,6 +31,13 @@ class SectionStatus(Enum):
     IN_PROGRESS = "in_progress" 
     COMPLETED = "completed"
     NEEDS_REVISION = "needs_revision"
+
+
+class SectionDefinition(TypedDict):
+    """TypedDict for section definition structure."""
+    name: str
+    description: str
+    criteria: List[str]
 
 
 @dataclass
@@ -72,7 +79,7 @@ class GDDController:
     """
     
     # Define the 8 focused GDD sections for indie games
-    SECTIONS_DEFINITION = {
+    SECTIONS_DEFINITION: Dict[int, SectionDefinition] = {
         1: {
             "name": "Core Vision",
             "description": "Elevator pitch and design pillars that prevent scope creep",
@@ -292,7 +299,7 @@ class GDDController:
         
         try:
             # Convert to JSON-serializable format
-            data = {
+            data: Dict[str, Any] = {
                 'session_id': self.current_session.session_id,
                 'tech_stack': self.current_session.tech_stack,
                 'language': self.current_session.language, 
@@ -368,6 +375,10 @@ Format as a simple numbered list:
             response = self.llm.invoke(prompt)
             content = response.content if hasattr(response, 'content') else str(response)
             
+            # Ensure content is a string for parsing
+            if not isinstance(content, str):
+                content = str(content)
+            
             # Parse questions from response
             questions = []
             for line in content.split('\n'):
@@ -385,7 +396,7 @@ Format as a simple numbered list:
             return [f"What are the key aspects of {section_def['name'].lower()} for your game?"]
     
     def _evaluate_response_completeness(self, section_num: int, user_response: str, 
-                                      previous_responses: List[str] = None) -> Tuple[bool, str]:
+                                      previous_responses: Optional[List[str]] = None) -> Tuple[bool, str]:
         """
         Use Flash Lite to evaluate if user responses satisfy section criteria.
         
@@ -421,6 +432,10 @@ Be reasonably lenient - if the user has provided thoughtful responses that addre
         try:
             response = self.llm.invoke(prompt)
             content = response.content if hasattr(response, 'content') else str(response)
+            
+            # Ensure content is a string for parsing
+            if not isinstance(content, str):
+                content = str(content)
             
             # Parse response
             is_complete = False

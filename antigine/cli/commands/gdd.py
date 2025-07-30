@@ -8,8 +8,9 @@ Uses the new atomic Flash Lite architecture with deterministic Python control.
 
 # Imports
 import sys
+import argparse
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Any
 
 from ...core.agents.gdd_creator import GDDController
 from ..utils.output import print_success, print_error, print_info, print_warning
@@ -32,7 +33,7 @@ class GDDCommands:
             print_error(f"Failed to initialize GDD Controller: {e}")
             return False
     
-    def create_gdd(self, args) -> int:
+    def create_gdd(self, args: argparse.Namespace) -> int:
         """
         Start interactive GDD creation process.
         
@@ -50,13 +51,15 @@ class GDDCommands:
             return 1
         
         # Check for existing session
-        if not force_new:
+        if not force_new and self.controller is not None:
             success, message = self.controller.load_existing_session()
             if success:
                 print_info(f"📄 Resuming existing session: {message}")
                 return self._continue_interactive_session()
         
         # Start new session
+        if self.controller is None:
+            return 1
         success, message = self.controller.create_new_session()
         if not success:
             print_error(f"Failed to start GDD creation: {message}")
@@ -68,6 +71,8 @@ class GDDCommands:
         self._show_session_instructions()
         
         # Start with first section
+        if self.controller is None:
+            return 1
         success, start_message, questions = self.controller.start_section(1)
         if not success:
             print_error(f"Failed to start first section: {start_message}")
@@ -79,7 +84,7 @@ class GDDCommands:
         # Start interactive session
         return self._continue_interactive_session()
     
-    def resume_gdd(self, args) -> int:
+    def resume_gdd(self, args: argparse.Namespace) -> int:
         """
         Resume an existing GDD creation session.
         
@@ -92,6 +97,8 @@ class GDDCommands:
         if not self._initialize_controller():
             return 1
         
+        if self.controller is None:
+            return 1
         success, message = self.controller.load_existing_session()
         if not success:
             print_error(f"Failed to resume session: {message}")
@@ -105,7 +112,7 @@ class GDDCommands:
         # Continue interactive session
         return self._continue_interactive_session()
     
-    def status_gdd(self, args) -> int:
+    def status_gdd(self, args: argparse.Namespace) -> int:
         """
         Show current GDD creation status.
         
@@ -118,6 +125,8 @@ class GDDCommands:
         if not self._initialize_controller():
             return 1
         
+        if self.controller is None:
+            return 1
         # Try to load existing session
         success, message = self.controller.load_existing_session()
         if not success:
@@ -128,6 +137,8 @@ class GDDCommands:
         print()
         
         # Show progress summary
+        if self.controller is None:
+            return 1
         status = self.controller.get_session_status()
         
         print(f"Session ID: {status['session_id']}")
@@ -136,6 +147,8 @@ class GDDCommands:
         print()
         
         # Show current section info
+        if self.controller is None:
+            return 1
         current_info = self.controller.get_current_section_info()
         if "error" not in current_info:
             print(f"Current Section: {current_info['section_number']}. {current_info['name']}")
@@ -145,7 +158,7 @@ class GDDCommands:
         
         return 0
     
-    def export_gdd(self, args) -> int:
+    def export_gdd(self, args: argparse.Namespace) -> int:
         """
         Export current GDD to a file.
         
@@ -160,6 +173,8 @@ class GDDCommands:
         if not self._initialize_controller():
             return 1
         
+        if self.controller is None:
+            return 1
         # Load existing session
         success, message = self.controller.load_existing_session()
         if not success:
@@ -172,6 +187,8 @@ class GDDCommands:
                 self._show_gdd_preview()
             else:
                 # Generate final GDD
+                if self.controller is None:
+                    return 1
                 success, result_message = self.controller.generate_final_gdd()
                 if success:
                     print_success(f"📁 {result_message}")
@@ -296,7 +313,7 @@ class GDDCommands:
         
         return 0
     
-    def _show_questions(self, questions):
+    def _show_questions(self, questions: List[str]) -> None:
         """Display questions to the user."""
         if not questions:
             return
@@ -306,7 +323,7 @@ class GDDCommands:
             print(f"   {i}. {question}")
         print()
     
-    def _show_session_instructions(self):
+    def _show_session_instructions(self) -> None:
         """Show instructions for the interactive session."""
         print()
         print_info("📋 GDD Creation Instructions:")
@@ -319,7 +336,7 @@ class GDDCommands:
         print("• Type 'quit' to exit and save progress")
         print()
     
-    def _show_help(self):
+    def _show_help(self) -> None:
         """Show help information for interactive commands."""
         print()
         print_info("📖 Available Commands:")
@@ -336,7 +353,7 @@ class GDDCommands:
         print("• You can always return to previous sections if needed")
         print()
     
-    def _show_progress_summary(self):
+    def _show_progress_summary(self) -> None:
         """Show a summary of current progress."""
         if not self.controller:
             return
@@ -350,7 +367,7 @@ class GDDCommands:
         print(f"Completed: {status['completed_sections']} sections ({status['completion_percentage']:.1f}%)")
         print()
     
-    def _show_next_section_preview(self):
+    def _show_next_section_preview(self) -> None:
         """Show preview of the next section."""
         if not self.controller:
             return
@@ -364,7 +381,7 @@ class GDDCommands:
         else:
             print_info("🎉 You're on the final section!")
     
-    def _show_gdd_preview(self):
+    def _show_gdd_preview(self) -> None:
         """Show a preview of the current GDD."""
         if not self.controller:
             return
@@ -395,7 +412,7 @@ class GDDCommands:
             print_error(f"Failed to generate preview: {e}")
 
 
-def setup_gdd_parser(subparsers):
+def setup_gdd_parser(subparsers: argparse._SubParsersAction) -> Any:
     """Set up the GDD command parser."""
     gdd_parser = subparsers.add_parser('gdd', help='Game Design Document creation and management')
     gdd_subparsers = gdd_parser.add_subparsers(dest='gdd_command', help='GDD commands')
@@ -418,7 +435,7 @@ def setup_gdd_parser(subparsers):
     return gdd_parser
 
 
-def handle_gdd_command(args, project_root: str) -> int:
+def handle_gdd_command(args: argparse.Namespace, project_root: str) -> int:
     """
     Handle GDD commands with the new atomic architecture.
     

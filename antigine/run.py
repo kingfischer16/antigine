@@ -131,7 +131,6 @@ def main(argv: Optional[List[str]] = None) -> int:
             return handle_config(args)
 
         elif args.command == "gdd":
-            import asyncio
             from .cli.commands.gdd import handle_gdd_command
             from .cli.utils.validation import get_project_root
 
@@ -140,7 +139,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                 print("Error: Not in an Antigine project directory. Run 'antigine init' first.", file=sys.stderr)
                 return 1
 
-            return asyncio.run(handle_gdd_command(args, project_root))
+            return handle_gdd_command(args, project_root)
 
         else:
             print(f"Unknown command: {args.command}", file=sys.stderr)

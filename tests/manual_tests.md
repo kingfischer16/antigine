@@ -477,58 +477,74 @@ options:
   -h, --help   show this help message and exit
 ```
 
-### Test 6.2: Start New GDD Session (Coach Style)
-**Description:** Start a new interactive GDD creation session with coach style
+### Test 6.2: Start New GDD Session (Atomic Flash Lite)
+**Description:** Start a new interactive GDD creation session with atomic Flash Lite architecture
 **Setup:** Use directory from Test 2.1
 **Command:**
 ```bash
-python -c "from antigine.run import main; main(['gdd', 'create', '--style', 'coach', '--model', 'standard'])"
+python -c "from antigine.run import main; main(['gdd', 'create'])"
 ```
 **Interactive Steps:**
-1. Agent should introduce itself and explain the process
-2. Agent should ask questions about the first section (Core Concept)
+1. System should show GDD creation instructions
+2. Flash Lite should generate focused questions for Core Vision section
 3. Respond with basic game concept information
-4. Type "done" when ready to move to next section
+4. System should evaluate response and either ask follow-up questions or complete section
 
 **Expected Output:**
 ```
-Starting new GDD creation session...
-Style: coach | Model: standard | Tech Stack: Love2D/Lua
+🎮 Starting GDD creation with atomic Flash Lite approach...
+✨ New GDD session created: [timestamp]
 
-=== GDD Creator Agent ===
-Welcome! I'm here to guide you through creating a comprehensive Game Design Document for your Love2D project.
+📋 GDD Creation Instructions:
+• Answer the coach's questions to build your Game Design Document
+• Type 'help' to see available commands
+• Type 'status' to check your progress
+• Type 'next' to see what's coming up
+• Type 'preview' to see your current GDD
+• Type 'section <number>' to jump to a specific section
+• Type 'quit' to exit and save progress
 
-We'll work through 8 key sections together:
-1. Core Concept (Current)
-2. Mechanics & Systems
-3. Art & Audio
-4. Technical Architecture
-5. Level Design & Content
-6. User Interface & Experience
-7. Development & Production
-8. Testing & Quality Assurance
+📝 Started section 1: Core Vision
 
-Let's start with your core concept. What's the main idea behind your game?
+📋 Questions to help you develop this section:
+   1. What is the core concept and main gameplay mechanic of your game?
+   2. Who is your target audience and what age group are you designing for?
+   3. What 3-5 design pillars will guide your development decisions?
+
+💬 Interactive GDD Creation Mode
+Type 'help' for commands, 'quit' to exit, 'status' for progress
+
+👤 You: 
 ```
 
-### Test 6.3: Start New GDD Session (Assembler Style)
-**Description:** Start a new interactive GDD creation session with assembler style
-**Setup:** Use directory from Test 2.2
-**Command:**
-```bash
-python -c "from antigine.run import main; main(['gdd', 'create', '--style', 'assembler', '--model', 'lite'])"
-```
-**Expected Output:**
-```
-Starting new GDD creation session...
-Style: assembler | Model: lite | Tech Stack: SDL2+OpenGL+GLM+Assimp/C++
+### Test 6.3: Response Evaluation and Follow-up Questions
+**Description:** Test how the system evaluates responses and generates follow-up questions
+**Setup:** Use directory from Test 2.1, continuing from Test 6.2
+**Interactive Steps:**
+1. Provide a brief, incomplete response to the initial questions
+2. System should evaluate the response as incomplete
+3. Flash Lite should generate follow-up questions
+4. Provide a complete response
+5. System should evaluate as complete and move to next section
 
-=== GDD Creator Agent ===
-GDD creation initialized. We need to efficiently collect information for 8 sections.
+**Expected Behavior:**
+```
+👤 You: My game is a platformer
+🤖 Coach: 📝 Your response covers the basic game type, but we need more details about your target audience and design pillars to complete this section.
 
-Section 1/8: Core Concept
-Required info: Game title, genre, core mechanics, target audience
-Enter your game's basic concept:
+📋 Questions to help you develop this section:
+   1. What specific age group or demographic are you targeting with this platformer?
+   2. What unique mechanics or features will set your platformer apart from others?
+   3. What are the core design principles that will guide your development decisions?
+
+👤 You: I'm targeting teenagers aged 13-17 who enjoy challenging games. My platformer will have unique gravity-switching mechanics where players can flip between ceiling and floor. My design pillars are: accessibility first, meaningful challenge, and tight controls.
+
+🤖 Coach: ✅ Section 1 completed! You've provided a clear game concept, defined your target audience, and established solid design pillars.
+
+🎯 Next: Section 2. MDA Breakdown
+   Mechanics, Dynamics, and Aesthetics with ruthless focus
+
+Continue to next section? (y/n): 
 ```
 
 ### Test 6.4: Resume Existing GDD Session
@@ -622,26 +638,43 @@ Backup created: docs/gdd_backup_[timestamp].md
 Your Game Design Document is complete!
 ```
 
-### Test 6.8: Model Tier Selection
-**Description:** Test different model complexity tiers
+### Test 6.8: Interactive Commands Testing
+**Description:** Test various interactive commands during GDD creation session
 **Setup:** Use directory from Test 2.3
 **Command:**
 ```bash
-python -c "from antigine.run import main; main(['gdd', 'create', '--model', 'pro', '--style', 'coach'])"
+python -c "from antigine.run import main; main(['gdd', 'create'])"
 ```
-**Expected Output:**
+**Interactive Steps:**
+1. Test 'help' command
+2. Test 'status' command  
+3. Test 'next' command
+4. Test 'preview' command
+5. Test 'section 3' command to jump to a specific section
+
+**Expected Behavior:**
 ```
-Starting new GDD creation session...
-Style: coach | Model: pro | Tech Stack: Pygame/Python
+👤 You: help
+📖 Available Commands:
+• help          - Show this help message
+• status        - Show current progress and section status
+• next          - Preview the next section
+• preview       - Show current GDD document preview
+• section <num> - Jump to a specific section (e.g., 'section 3')
+• quit          - Exit and save progress
 
-=== GDD Creator Agent (Pro Model) ===
-Welcome to the advanced GDD creation experience! I'll provide detailed guidance and sophisticated analysis throughout our journey.
+👤 You: status
+📊 Progress Summary:
+Current Section: Core Vision (1/8)
+Completed: 0 sections (0.0%)
 
-I'll ask probing questions, suggest industry best practices, and help you create a professional-grade Game Design Document...
+👤 You: section 3
+📝 Started section 3: Core Gameplay Loop
+[Questions for section 3 would appear here]
 ```
 
 ### Test 6.9: Tech Stack Integration Validation
-**Description:** Verify tech stack-specific guidance is provided
+**Description:** Verify tech stack-specific guidance is provided in Flash Lite questions
 **Setup:** Use directory with different tech stacks from previous tests
 **Commands:**
 ```bash
@@ -658,9 +691,11 @@ cd AntigineManualTest3
 python -c "from antigine.run import main; main(['gdd', 'create'])"
 ```
 **Expected Behavior:**
-- Love2D session should mention Love2D-specific concepts, functions, libraries
-- SDL2 session should reference C++ patterns, OpenGL rendering, asset management
-- Pygame session should discuss Python game development, pygame modules, cross-platform considerations
+- Love2D questions should reference Love2D-specific considerations (sprites, physics, audio systems)
+- SDL2 questions should mention C++ development patterns, OpenGL rendering capabilities, memory management
+- Pygame questions should discuss Python game development, cross-platform deployment, pygame module usage
+
+**Note:** The Flash Lite model should incorporate tech stack context into all question generation, ensuring questions are relevant to the specific technology being used.
 
 ### Test 6.10: Error Handling - No Project Context
 **Description:** Verify error when running GDD commands outside Antigine project

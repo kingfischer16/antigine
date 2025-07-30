@@ -3,39 +3,36 @@ gdd.py
 ######
 
 CLI commands for GDD (Game Design Document) creation and management.
-Integrates with the GDD Creator Agent for interactive document creation.
+Uses the new atomic Flash Lite architecture with deterministic Python control.
 """
 
 # Imports
-import asyncio
 import sys
 from pathlib import Path
 from typing import Optional
 
-from ...core.agents.gdd_creator import GDDCreatorAgent
-from ...core.agents.gdd_session import GDDState
+from ...core.agents.gdd_creator import GDDController
 from ..utils.output import print_success, print_error, print_info, print_warning
 
 
 class GDDCommands:
-    """CLI commands for GDD creation and management."""
+    """CLI commands for GDD creation and management using atomic Flash Lite operations."""
     
     def __init__(self, project_root: str):
         """Initialize GDD commands for a specific project."""
         self.project_root = project_root
-        self.agent: Optional[GDDCreatorAgent] = None
-        self.current_state: Optional[GDDState] = None
+        self.controller: Optional[GDDController] = None
     
-    def _initialize_agent(self, style: str = "coach", model_tier: str = "standard") -> bool:
-        """Initialize the GDD Creator Agent."""
+    def _initialize_controller(self) -> bool:
+        """Initialize the GDD Controller."""
         try:
-            self.agent = GDDCreatorAgent(self.project_root, style, model_tier)
+            self.controller = GDDController(self.project_root)
             return True
         except Exception as e:
-            print_error(f"Failed to initialize GDD Creator Agent: {e}")
+            print_error(f"Failed to initialize GDD Controller: {e}")
             return False
     
-    async def create_gdd(self, args) -> int:
+    def create_gdd(self, args) -> int:
         """
         Start interactive GDD creation process.
         
@@ -45,39 +42,44 @@ class GDDCommands:
         Returns:
             int: Exit code (0 for success, 1 for error)
         """
-        style = getattr(args, 'style', 'coach')
-        model_tier = getattr(args, 'model', 'standard')
         force_new = getattr(args, 'force', False)
         
-        print_info(f"🎮 Starting GDD creation with {style} style using {model_tier} model...")
+        print_info("🎮 Starting GDD creation with atomic Flash Lite approach...")
         
-        if not self._initialize_agent(style, model_tier):
+        if not self._initialize_controller():
             return 1
         
         # Check for existing session
         if not force_new:
-            success, message, state = await self.agent.resume_session()
-            if success and state:
+            success, message = self.controller.load_existing_session()
+            if success:
                 print_info(f"📄 Resuming existing session: {message}")
-                self.current_state = state
-                return await self._continue_interactive_session()
+                return self._continue_interactive_session()
         
         # Start new session
-        success, message, state = await self.agent.start_new_session()
+        success, message = self.controller.create_new_session()
         if not success:
             print_error(f"Failed to start GDD creation: {message}")
             return 1
         
         print_success(f"✨ {message}")
-        self.current_state = state
         
         # Show initial instructions
         self._show_session_instructions()
         
+        # Start with first section
+        success, start_message, questions = self.controller.start_section(1)
+        if not success:
+            print_error(f"Failed to start first section: {start_message}")
+            return 1
+        
+        print_info(f"📝 {start_message}")
+        self._show_questions(questions)
+        
         # Start interactive session
-        return await self._continue_interactive_session()
+        return self._continue_interactive_session()
     
-    async def resume_gdd(self, args) -> int:
+    def resume_gdd(self, args) -> int:
         """
         Resume an existing GDD creation session.
         
@@ -87,25 +89,21 @@ class GDDCommands:
         Returns:
             int: Exit code (0 for success, 1 for error)
         """
-        style = getattr(args, 'style', 'coach')
-        model_tier = getattr(args, 'model', 'standard')
-        
-        if not self._initialize_agent(style, model_tier):
+        if not self._initialize_controller():
             return 1
         
-        success, message, state = await self.agent.resume_session()
+        success, message = self.controller.load_existing_session()
         if not success:
             print_error(f"Failed to resume session: {message}")
             return 1
         
         print_success(f"📄 {message}")
-        self.current_state = state
         
         # Show current progress
         self._show_progress_summary()
         
         # Continue interactive session
-        return await self._continue_interactive_session()
+        return self._continue_interactive_session()
     
     def status_gdd(self, args) -> int:
         """
@@ -117,52 +115,33 @@ class GDDCommands:
         Returns:
             int: Exit code (0 for success, 1 for error)
         """
-        style = getattr(args, 'style', 'coach')
-        model_tier = getattr(args, 'model', 'standard')
-        
-        if not self._initialize_agent(style, model_tier):
+        if not self._initialize_controller():
             return 1
         
         # Try to load existing session
-        success, message, state = asyncio.run(self.agent.resume_session())
+        success, message = self.controller.load_existing_session()
         if not success:
-            print_info("📋 No active GDD creation session found.")
+            print_info("No active GDD creation session found.")
             return 0
         
         print_info("📊 GDD Creation Status:")
         print()
         
         # Show progress summary
-        status = self.agent.get_session_status(state)
-        progress = status["progress"]
+        status = self.controller.get_session_status()
         
-        print(f"Session ID: {progress['session_id']}")
-        print(f"Tech Stack: {progress['tech_stack']} / {progress['language']}")
-        print(f"Style: {progress['style']}")
-        print(f"Progress: {progress['completed_sections']}/{progress['total_sections']} sections ({progress['completion_percentage']:.1f}%)")
-        print(f"Duration: {progress['session_duration_minutes']:.1f} minutes")
+        print(f"Session ID: {status['session_id']}")
+        print(f"Tech Stack: {status['tech_stack']} / {status['language']}")
+        print(f"Progress: {status['completed_sections']}/{status['total_sections']} sections ({status['completion_percentage']:.1f}%)")
         print()
         
-        # Show section details
-        print("Section Status:")
-        for section in status["sections"]:
-            status_emoji = {
-                "completed": "✅",
-                "in_progress": "🔄",
-                "pending": "⏳"
-            }.get(section["status"], "❓")
-            
-            print(f"  {status_emoji} Section {section['number']}: {section['name']} ({section['status']})")
-            
-            if section['interaction_count'] > 0:
-                print(f"      {section['interaction_count']} interactions")
-        
-        # Show validation issues if any
-        if status["validation_issues"]:
-            print()
-            print_warning("⚠️  Validation Issues:")
-            for issue in status["validation_issues"]:
-                print(f"  - {issue}")
+        # Show current section info
+        current_info = self.controller.get_current_section_info()
+        if "error" not in current_info:
+            print(f"Current Section: {current_info['section_number']}. {current_info['name']}")
+            print(f"Status: {current_info['status']}")
+            print(f"Questions asked: {current_info['questions_asked_count']}")
+            print(f"Responses given: {current_info['responses_given_count']}")
         
         return 0
     
@@ -176,39 +155,29 @@ class GDDCommands:
         Returns:
             int: Exit code (0 for success, 1 for error)
         """
-        output_path = getattr(args, 'output', None)
         preview_only = getattr(args, 'preview', False)
         
-        if not self._initialize_agent():
+        if not self._initialize_controller():
             return 1
         
         # Load existing session
-        success, message, state = asyncio.run(self.agent.resume_session())
+        success, message = self.controller.load_existing_session()
         if not success:
             print_error("No GDD session found to export.")
             return 1
         
         try:
             if preview_only:
-                # Show preview in terminal
-                preview = self.agent.export_gdd_preview(state)
-                print("📄 GDD Preview:")
-                print("=" * 50)
-                print(preview)
-                print("=" * 50)
+                # Show current progress as preview
+                self._show_gdd_preview()
             else:
-                # Export to file
-                if not output_path:
-                    output_path = Path(self.project_root) / "docs" / "gdd_export.md"
+                # Generate final GDD
+                success, result_message = self.controller.generate_final_gdd()
+                if success:
+                    print_success(f"📁 {result_message}")
                 else:
-                    output_path = Path(output_path)
-                
-                gdd_content = self.agent.export_gdd_preview(state)
-                
-                output_path.parent.mkdir(parents=True, exist_ok=True)
-                output_path.write_text(gdd_content, encoding='utf-8')
-                
-                print_success(f"📁 GDD exported to: {output_path}")
+                    print_error(f"Export failed: {result_message}")
+                    return 1
             
             return 0
             
@@ -216,21 +185,16 @@ class GDDCommands:
             print_error(f"Failed to export GDD: {e}")
             return 1
     
-    async def _continue_interactive_session(self) -> int:
+    def _continue_interactive_session(self) -> int:
         """Continue the interactive GDD creation session."""
-        if not self.agent or not self.current_state:
-            print_error("No active session to continue.")
+        if not self.controller:
+            print_error("No controller initialized.")
             return 1
         
         print()
         print_info("💬 Interactive GDD Creation Mode")
         print_info("Type 'help' for commands, 'quit' to exit, 'status' for progress")
         print()
-        
-        # Show initial agent response if available
-        if self.current_state.get("current_agent_response"):
-            print("🤖 Agent:", self.current_state["current_agent_response"])
-            print()
         
         while True:
             try:
@@ -242,7 +206,7 @@ class GDDCommands:
                 
                 # Handle special commands
                 if user_input.lower() in ['quit', 'exit', 'q']:
-                    print_info("👋 Ending GDD creation session.")
+                    print_info("👋 Ending GDD creation session. Progress has been saved.")
                     break
                 elif user_input.lower() == 'help':
                     self._show_help()
@@ -250,41 +214,77 @@ class GDDCommands:
                 elif user_input.lower() == 'status':
                     self._show_progress_summary()
                     continue
-                elif user_input.lower() == 'save':
-                    self._save_session()
+                elif user_input.lower() == 'next':
+                    self._show_next_section_preview()
                     continue
                 elif user_input.lower() == 'preview':
                     self._show_gdd_preview()
                     continue
-                
-                # Process user input through the agent
-                success, agent_response, updated_state = await self.agent.process_user_input(
-                    user_input, self.current_state
-                )
-                
-                if not success:
-                    print_error(f"❌ Error: {agent_response}")
+                elif user_input.lower().startswith('section '):
+                    # Jump to specific section
+                    try:
+                        section_num = int(user_input.split()[1])
+                        success, start_message, questions = self.controller.start_section(section_num)
+                        if success:
+                            print_info(f"📝 {start_message}")
+                            self._show_questions(questions)
+                        else:
+                            print_error(start_message)
+                    except (ValueError, IndexError):
+                        print_error("Usage: section <number> (e.g., 'section 3')")
                     continue
                 
-                # Update current state
-                self.current_state = updated_state
+                # Process user response through the controller
+                success, feedback, next_questions = self.controller.process_user_response(user_input)
                 
-                # Show agent response
-                print()
-                print("🤖 Agent:", agent_response)
-                print()
+                if not success:
+                    print_error(f"❌ Error: {feedback}")
+                    continue
                 
-                # Check if GDD is complete
-                if self.current_state.get("is_completed"):
-                    print_success("🎉 GDD creation complete!")
+                # Show feedback
+                print()
+                print("🤖 Coach:", feedback)
+                
+                # If section is complete and GDD is done
+                if next_questions is None and "GDD creation is now complete" in feedback:
+                    print()
+                    print_success("🎉 Congratulations! Your GDD is complete!")
                     
-                    # Ask if user wants to save the final GDD
-                    save_response = input("💾 Save the completed GDD to docs/gdd.md? (y/n): ").strip().lower()
+                    # Ask if user wants to generate final document
+                    save_response = input("💾 Generate final GDD document? (y/n): ").strip().lower()
                     if save_response in ['y', 'yes']:
-                        # The finalization should have already saved it, but confirm
-                        print_success("✅ GDD saved successfully!")
+                        success, result_message = self.controller.generate_final_gdd()
+                        if success:
+                            print_success(f"✅ {result_message}")
+                        else:
+                            print_error(f"Failed to generate final GDD: {result_message}")
                     
                     break
+                
+                # If section is complete but more sections remain
+                elif next_questions is None:
+                    print()
+                    next_preview = self.controller.get_next_section_preview()
+                    if next_preview:
+                        print_info(f"🎯 Next: Section {next_preview['section_number']}. {next_preview['name']}")
+                        print_info(f"   {next_preview['description']}")
+                        print()
+                        continue_response = input("Continue to next section? (y/n): ").strip().lower()
+                        if continue_response in ['y', 'yes', '']:
+                            next_section_num = next_preview['section_number']
+                            success, start_message, questions = self.controller.start_section(next_section_num)
+                            if success:
+                                print_info(f"📝 {start_message}")
+                                self._show_questions(questions)
+                            else:
+                                print_error(start_message)
+                
+                # Show follow-up questions if available
+                elif next_questions:
+                    print()
+                    self._show_questions(next_questions)
+                
+                print()
                 
             except KeyboardInterrupt:
                 print()
@@ -296,14 +296,26 @@ class GDDCommands:
         
         return 0
     
+    def _show_questions(self, questions):
+        """Display questions to the user."""
+        if not questions:
+            return
+        
+        print_info("📋 Questions to help you develop this section:")
+        for i, question in enumerate(questions, 1):
+            print(f"   {i}. {question}")
+        print()
+    
     def _show_session_instructions(self):
         """Show instructions for the interactive session."""
         print()
         print_info("📋 GDD Creation Instructions:")
-        print("• Answer the agent's questions to build your Game Design Document")
+        print("• Answer the coach's questions to build your Game Design Document")
         print("• Type 'help' to see available commands")
         print("• Type 'status' to check your progress")
+        print("• Type 'next' to see what's coming up")
         print("• Type 'preview' to see your current GDD")
+        print("• Type 'section <number>' to jump to a specific section")
         print("• Type 'quit' to exit and save progress")
         print()
     
@@ -311,60 +323,76 @@ class GDDCommands:
         """Show help information for interactive commands."""
         print()
         print_info("📖 Available Commands:")
-        print("• help     - Show this help message")
-        print("• status   - Show current progress and section status") 
-        print("• preview  - Show current GDD document preview")
-        print("• save     - Manually save session progress")
-        print("• quit     - Exit and save progress")
+        print("• help          - Show this help message")
+        print("• status        - Show current progress and section status") 
+        print("• next          - Preview the next section")
+        print("• preview       - Show current GDD document preview")
+        print("• section <num> - Jump to a specific section (e.g., 'section 3')")
+        print("• quit          - Exit and save progress")
         print()
         print_info("💡 Tips:")
         print("• Be specific and detailed in your responses")
-        print("• You can revise previous answers by mentioning the section")
-        print("• The agent will guide you through each section systematically")
+        print("• The coach will evaluate when you've provided enough information")
+        print("• You can always return to previous sections if needed")
         print()
     
     def _show_progress_summary(self):
         """Show a summary of current progress."""
-        if not self.agent or not self.current_state:
+        if not self.controller:
             return
         
-        status = self.agent.get_session_status(self.current_state)
-        progress = status["progress"]
+        status = self.controller.get_session_status()
+        current_info = self.controller.get_current_section_info()
         
         print()
         print_info("📊 Progress Summary:")
-        print(f"Current Section: {progress['current_section_name']} ({progress['current_section']}/8)")
-        print(f"Completed: {progress['completed_sections']} sections ({progress['completion_percentage']:.1f}%)")
-        print(f"Session Duration: {progress['session_duration_minutes']:.1f} minutes")
+        print(f"Current Section: {current_info.get('name', 'Unknown')} ({status['current_section']}/8)")
+        print(f"Completed: {status['completed_sections']} sections ({status['completion_percentage']:.1f}%)")
         print()
+    
+    def _show_next_section_preview(self):
+        """Show preview of the next section."""
+        if not self.controller:
+            return
+        
+        next_preview = self.controller.get_next_section_preview()
+        if next_preview:
+            print()
+            print_info(f"🎯 Next Section: {next_preview['section_number']}. {next_preview['name']}")
+            print(f"   {next_preview['description']}")
+            print()
+        else:
+            print_info("🎉 You're on the final section!")
     
     def _show_gdd_preview(self):
         """Show a preview of the current GDD."""
-        if not self.agent or not self.current_state:
+        if not self.controller:
             return
         
         try:
-            preview = self.agent.export_gdd_preview(self.current_state)
+            status = self.controller.get_session_status()
             print()
-            print_info("📄 Current GDD Preview:")
+            print_info("📄 Current GDD Progress:")
             print("=" * 60)
-            print(preview)
+            print(f"Project: {status['tech_stack']}/{status['language']} Game")
+            print(f"Progress: {status['completed_sections']}/{status['total_sections']} sections")
+            print("=" * 60)
+            print()
+            
+            # Show completed sections
+            for i in range(1, 9):
+                section_name = self.controller.SECTIONS_DEFINITION[i]["name"]
+                if i <= status['completed_sections']:
+                    print(f"✅ Section {i}: {section_name}")
+                elif i == status['current_section']:
+                    print(f"🔄 Section {i}: {section_name} (In Progress)")
+                else:
+                    print(f"⏳ Section {i}: {section_name}")
+            
             print("=" * 60)
             print()
         except Exception as e:
             print_error(f"Failed to generate preview: {e}")
-    
-    def _save_session(self):
-        """Manually save the current session."""
-        if not self.current_state:
-            print_warning("No session to save.")
-            return
-        
-        try:
-            # Session is auto-saved by the agent, but we can confirm it
-            print_success("💾 Session progress saved!")
-        except Exception as e:
-            print_error(f"Failed to save session: {e}")
 
 
 def setup_gdd_parser(subparsers):
@@ -374,34 +402,25 @@ def setup_gdd_parser(subparsers):
     
     # Create command
     create_parser = gdd_subparsers.add_parser('create', help='Start interactive GDD creation')
-    create_parser.add_argument('--style', choices=['coach', 'assembler'], default='coach',
-                              help='Interaction style (default: coach)')
-    create_parser.add_argument('--model', choices=['lite', 'standard', 'pro'], default='standard',
-                              help='Model complexity tier (default: standard)')
     create_parser.add_argument('--force', action='store_true',
                               help='Force new session even if one exists')
     
     # Resume command
     resume_parser = gdd_subparsers.add_parser('resume', help='Resume existing GDD creation session')
-    resume_parser.add_argument('--style', choices=['coach', 'assembler'], default='coach',
-                              help='Interaction style (default: coach)')
-    resume_parser.add_argument('--model', choices=['lite', 'standard', 'pro'], default='standard',
-                              help='Model complexity tier (default: standard)')
     
     # Status command
     status_parser = gdd_subparsers.add_parser('status', help='Show GDD creation status')
     
     # Export command
     export_parser = gdd_subparsers.add_parser('export', help='Export GDD to file')
-    export_parser.add_argument('--output', '-o', help='Output file path')
-    export_parser.add_argument('--preview', action='store_true', help='Show preview instead of saving')
+    export_parser.add_argument('--preview', action='store_true', help='Show preview instead of generating final document')
     
     return gdd_parser
 
 
-async def handle_gdd_command(args, project_root: str) -> int:
+def handle_gdd_command(args, project_root: str) -> int:
     """
-    Handle GDD commands.
+    Handle GDD commands with the new atomic architecture.
     
     Args:
         args: Parsed command line arguments
@@ -413,9 +432,9 @@ async def handle_gdd_command(args, project_root: str) -> int:
     gdd_commands = GDDCommands(project_root)
     
     if args.gdd_command == 'create':
-        return await gdd_commands.create_gdd(args)
+        return gdd_commands.create_gdd(args)
     elif args.gdd_command == 'resume':
-        return await gdd_commands.resume_gdd(args)
+        return gdd_commands.resume_gdd(args)
     elif args.gdd_command == 'status':
         return gdd_commands.status_gdd(args)
     elif args.gdd_command == 'export':

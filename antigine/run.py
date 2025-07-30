@@ -28,6 +28,8 @@ Examples:
   antigine status                   Show project status
   antigine feature list             List all features
   antigine feature show <id>        Show feature details
+  antigine gdd create               Start interactive GDD creation
+  antigine gdd status               Show GDD creation progress
         """,
     )
 
@@ -76,6 +78,10 @@ Examples:
     config_parser.add_argument("--get", help="Get specific configuration value")
     config_parser.add_argument("--set", nargs=2, metavar=("KEY", "VALUE"), help="Set configuration key to value")
 
+    # GDD command
+    from .cli.commands.gdd import setup_gdd_parser
+    setup_gdd_parser(subparsers)
+
     return parser
 
 
@@ -123,6 +129,18 @@ def main(argv: Optional[List[str]] = None) -> int:
             from .cli.commands.config import handle_config
 
             return handle_config(args)
+
+        elif args.command == "gdd":
+            import asyncio
+            from .cli.commands.gdd import handle_gdd_command
+            from .cli.utils.validation import get_project_root
+
+            project_root = get_project_root()
+            if not project_root:
+                print("Error: Not in an Antigine project directory. Run 'antigine init' first.", file=sys.stderr)
+                return 1
+
+            return asyncio.run(handle_gdd_command(args, project_root))
 
         else:
             print(f"Unknown command: {args.command}", file=sys.stderr)

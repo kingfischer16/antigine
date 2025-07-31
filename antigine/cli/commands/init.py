@@ -145,10 +145,6 @@ def _get_tech_stack(args: Namespace, language: str) -> str:
     print_info("  - A single library (e.g., 'Love2D', 'Pygame', 'SDL2')")
     print_info("  - Multiple libraries separated by '+' (e.g., 'SDL2+OpenGL+GLM')")
 
-    tech_stack = prompt_for_input(f"Enter tech stack for {language}", default=None)  # type: ignore
-
-    if not tech_stack:
-        print_error("Tech stack is required. Please specify at least one library.")
-        raise ValueError("Tech stack input is required")
+    tech_stack = prompt_for_choice(f"Select tech stack for {language}", choices=lib_names, default=None)  # type: ignore
 
     return tech_stack

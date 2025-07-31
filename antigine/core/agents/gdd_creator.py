@@ -404,7 +404,7 @@ Format as a simple numbered list:
         self, section_num: int, user_response: str, previous_responses: Optional[List[str]] = None
     ) -> Tuple[bool, str]:
         """
-        Use Flash Lite to evaluate if user responses satisfy section criteria.
+        Extract content from user responses and evaluate completeness using content extraction approach.
 
         Args:
             section_num (int): Section number
@@ -418,48 +418,184 @@ Format as a simple numbered list:
         all_responses = (previous_responses or []) + [user_response]
         combined_response = "\n\n".join(all_responses)
 
-        prompt = f"""You are evaluating responses for a Game Design Document section.
+        # First, extract content for each criterion
+        criteria_list = chr(10).join(f"- {criterion}" for criterion in section_def['criteria'])
+        extraction_prompt = f"""You are helping extract and organize content from user responses for a GDD.
 
 SECTION: {section_def['name']}
 REQUIRED CRITERIA:
-{chr(10).join(f"- {criterion}" for criterion in section_def['criteria'])}
+{criteria_list}
 
 USER RESPONSES:
 {combined_response}
 
-Evaluate if the user responses adequately cover ALL the required criteria above.
+Your job is to extract what the user has provided for each criterion, even if embedded in narrative form.
 
-Respond with EXACTLY this format:
-COMPLETE: Yes/No
-REASON: [Brief explanation of what's covered or what's missing]
+For each criterion, extract relevant information or mark as "MISSING" if not provided/implied.
 
-Be reasonably lenient - if the user has provided thoughtful responses that address the core intent of each
-criterion, consider it complete."""
+Respond in EXACTLY this format:
+CRITERION 1: [extracted content or MISSING]
+CRITERION 2: [extracted content or MISSING]
+CRITERION 3: [extracted content or MISSING]
+CRITERION 4: [extracted content or MISSING]
+
+Be generous in extraction - if you can reasonably infer information from the user's narrative, include it."""
+
+        try:
+            extraction_response = self.llm.invoke(extraction_prompt)
+            extraction_content = (extraction_response.content
+                                  if hasattr(extraction_response, "content")
+                                  else str(extraction_response))
+
+            # Ensure extraction_content is a string
+            if not isinstance(extraction_content, str):
+                extraction_content = str(extraction_content)
+
+            # Parse extracted content
+            extracted_criteria = {}
+            missing_criteria = []
+
+            criterion_lines = [line.strip() for line in extraction_content.split("\n")
+                               if line.strip().startswith("CRITERION")]
+
+            for i, line in enumerate(criterion_lines, 1):
+                if "MISSING" in line.upper():
+                    missing_criteria.append(section_def['criteria'][i-1])
+                else:
+                    # Extract the content after the colon
+                    content_part = line.split(":", 1)[1].strip() if ":" in line else ""
+                    if content_part and content_part.upper() != "MISSING":
+                        extracted_criteria[section_def['criteria'][i-1]] = content_part
+
+            # Determine if section is complete
+            if len(missing_criteria) == 0:
+                criteria_keys = ', '.join(extracted_criteria.keys())
+                return True, f"✅ Section completed! All criteria covered: {criteria_keys}"
+
+            # Generate feedback showing what was understood and what's missing
+            feedback_parts = []
+
+            if extracted_criteria:
+                feedback_parts.append("📝 Here's what I understand so far:")
+                for criterion, content in extracted_criteria.items():
+                    feedback_parts.append(f"• **{criterion}**: {content}")
+                feedback_parts.append("")
+
+            if missing_criteria:
+                feedback_parts.append("❓ I still need information about:")
+                for criterion in missing_criteria:
+                    feedback_parts.append(f"• {criterion}")
+
+            feedback = "\n".join(feedback_parts)
+            return False, feedback
+
+        except Exception:
+            # Fallback to original approach on error
+            criteria_str = ', '.join(section_def['criteria'])
+            return False, f"Unable to process response. Please provide more details about: {criteria_str}"
+
+    def _extract_missing_criteria_from_feedback(self, feedback: str, all_criteria: List[str]) -> List[str]:
+        """
+        Extract missing criteria from feedback message.
+
+        Args:
+            feedback (str): The feedback message containing missing criteria
+            all_criteria (List[str]): All criteria for the section
+
+        Returns:
+            List[str]: List of missing criteria
+        """
+        missing_criteria = []
+
+        # Look for criteria mentioned in the "I still need information about:" section
+        lines = feedback.split('\n')
+        in_missing_section = False
+
+        for line in lines:
+            line = line.strip()
+            if "I still need information about:" in line:
+                in_missing_section = True
+                continue
+            elif in_missing_section and line.startswith('•'):
+                # Extract the criterion from the bullet point
+                criterion_text = line[1:].strip()  # Remove bullet point
+                # Match against actual criteria
+                for criterion in all_criteria:
+                    if (criterion.lower() in criterion_text.lower() or
+                            criterion_text.lower() in criterion.lower()):
+                        missing_criteria.append(criterion)
+                        break
+
+        # Fallback: if no specific criteria found, return all criteria
+        if not missing_criteria:
+            missing_criteria = all_criteria
+
+        return missing_criteria
+
+    def _generate_targeted_questions(self, section_num: int, context: str, missing_criteria: List[str]) -> List[str]:
+        """
+        Generate targeted questions for specific missing criteria.
+
+        Args:
+            section_num (int): Section number
+            context (str): Context from previous sections
+            missing_criteria (List[str]): Specific criteria that need information
+
+        Returns:
+            List[str]: List of targeted questions
+        """
+        section_def = self.SECTIONS_DEFINITION[section_num]
+        missing_list = chr(10).join(f"- {criterion}" for criterion in missing_criteria)
+        context_str = context if context else "This is the first section - no previous context available."
+
+        prompt = f"""You are helping create a Game Design Document for a {self.tech_stack}/{self.language} game.
+
+SECTION: {section_def['name']}
+DESCRIPTION: {section_def['description']}
+
+MISSING CRITERIA (focus on these):
+{missing_list}
+
+GAME CONTEXT SO FAR:
+{context_str}
+
+Generate 1-2 specific, focused questions that will help gather the MISSING information above.
+Make the questions:
+1. Specific to the missing criteria only
+2. Appropriate for indie game development
+3. Focused on getting concrete, useful answers
+4. Acknowledge what the user has already provided
+
+Format as a simple numbered list:
+1. [question]
+2. [question]"""
 
         try:
             response = self.llm.invoke(prompt)
             content = response.content if hasattr(response, "content") else str(response)
 
-            # Ensure content is a string for parsing
+            # Ensure content is a string
             if not isinstance(content, str):
                 content = str(content)
 
-            # Parse response
-            is_complete = False
-            reason = "Unable to evaluate response"
-
+            # Parse questions from response
+            questions = []
             for line in content.split("\n"):
                 line = line.strip()
-                if line.startswith("COMPLETE:"):
-                    is_complete = "yes" in line.lower()
-                elif line.startswith("REASON:"):
-                    reason = line.split(":", 1)[1].strip()
+                if line and (line[0].isdigit() or line.startswith("-")):
+                    # Remove numbering and add to questions
+                    question = line.split(".", 1)[1].strip() if "." in line else line.strip()
+                    if question and not question.startswith("[") and not question.startswith("Format"):
+                        questions.append(question)
 
-            return is_complete, reason
+            criteria_str = ', '.join(missing_criteria)
+            fallback_question = f"Can you provide more details about: {criteria_str}?"
+            return questions[:2] if questions else [fallback_question]
 
-        except Exception as e:
-            # Conservative fallback
-            return False, f"Error evaluating response: {str(e)}"
+        except Exception:
+            # Fallback questions for missing criteria
+            criteria_str = ', '.join(missing_criteria)
+            return [f"Can you provide more details about: {criteria_str}?"]
 
     def _structure_section_content(self, section_num: int, user_responses: List[str]) -> Dict[str, Any]:
         """
@@ -598,9 +734,14 @@ Focus on clarity and organization. Remove redundancy but preserve all important 
                 else:
                     return True, f"✅ Section {current_section_num} completed! {reason}", None
             else:
-                # Need more information, generate follow-up questions
+                # Need more information, generate targeted follow-up questions
                 context = self._build_context_summary()
-                follow_up_questions = self._generate_questions(current_section_num, context)
+
+                # Extract missing criteria from the reason/feedback
+                section_def = self.SECTIONS_DEFINITION[current_section_num]
+                missing_criteria = self._extract_missing_criteria_from_feedback(reason, section_def['criteria'])
+
+                follow_up_questions = self._generate_targeted_questions(current_section_num, context, missing_criteria)
                 section.questions_asked.extend(follow_up_questions)
 
                 # Save session

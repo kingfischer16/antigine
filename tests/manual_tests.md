@@ -162,7 +162,7 @@ python -c "from antigine.run import main; main(['init', '--name', 'My3DGame', '-
 **Verify:** Check that C++ project structure is created with `CMakeLists.txt`, `src/main.cpp`, and appropriate asset folders
 
 ### Test 2.3: Interactive Language and Tech Stack Selection
-**Description:** Test the interactive prompts for language and tech stack selection
+**Description:** Test the interactive prompts for language and tech stack selection with text input validation
 **Setup:**
 ```bash
 mkdir "D:\TestProjects\AntigineManualTest3"
@@ -196,6 +196,7 @@ You can specify:
   - Multiple libraries separated by '+' (e.g., 'SDL2+OpenGL+GLM')
 
 Enter tech stack for Python: Pygame
+✓ Recognized library: Pygame
 
 [INFO] Initializing Antigine project 'InteractiveGame' in D:\TestProjects\AntigineManualTest3
 [INFO] Tech Stack: Pygame
@@ -209,8 +210,8 @@ Enter tech stack for Python: Pygame
 ```
 **Verify:** Check that Python project structure is created with `main.py`, `requirements.txt`
 
-### Test 2.4: Required Tech Stack Validation
-**Description:** Test that tech stack input is required and cannot be empty
+### Test 2.4: Multiple Library Tech Stack Selection
+**Description:** Test selection of multiple libraries for complex tech stacks
 **Setup:**
 ```bash
 mkdir "D:\TestProjects\AntigineManualTest4"
@@ -218,13 +219,11 @@ cd "D:\TestProjects\AntigineManualTest4"
 ```
 **Command:**
 ```bash
-python -c "from antigine.run import main; main(['init', '--name', 'ValidationTest'])"
+python -c "from antigine.run import main; main(['init', '--name', 'ComplexStackTest'])"
 ```
 **Interactive Steps:**
-1. When prompted for programming language, enter `1` (Lua)
-2. When prompted for tech stack, press Enter (empty input)
-3. Should show error and re-prompt
-4. Enter `Love2D` when prompted again
+1. When prompted for programming language, enter `3` (C++)
+2. When prompted for tech stack, enter `SDL2+OpenGL+GLM`
 
 **Expected Output:**
 ```
@@ -233,6 +232,124 @@ Please select a programming language for your project:
   2. Python
   3. C++
   4. C
+
+Select programming language
+Enter choice [1-4]: 3
+
+Available libraries for C++:
+  1. SDL2 - Cross-platform development library for low level access
+  2. OpenGL - Graphics rendering API for 2D and 3D graphics
+  3. GLM - Mathematics library for graphics programming
+  4. Assimp - Asset import library for 3D model loading
+  5. stb_image - Image loading/decoding library
+  6. Bullet - Physics simulation engine
+  7. Dear ImGui - Immediate mode GUI toolkit for debugging
+
+You can specify:
+  - A single library (e.g., 'Love2D', 'Pygame', 'SDL2')
+  - Multiple libraries separated by '+' (e.g., 'SDL2+OpenGL+GLM')
+
+Enter tech stack for C++: SDL2+OpenGL+GLM
+✓ Recognized libraries: SDL2, OpenGL, and GLM
+
+[INFO] Initializing Antigine project 'ComplexStackTest' in D:\TestProjects\AntigineManualTest4
+[INFO] Tech Stack: SDL2+OpenGL+GLM
+[INFO] Creating project folders...
+[INFO] Configuring project...
+[INFO] Initializing project ledger...
+[OK] Successfully initialized Antigine project 'ComplexStackTest'!
+[INFO] Next steps:
+[INFO]   1. Run 'antigine status' to view project information
+[INFO]   2. Create your first feature with 'antigine feature create'
+```
+
+### Test 2.5: Tech Stack Validation and Error Handling
+**Description:** Test validation errors and suggestions for incorrect tech stack input
+**Setup:**
+```bash
+mkdir "D:\TestProjects\AntigineManualTest5"
+cd "D:\TestProjects\AntigineManualTest5"
+```
+**Command:**
+```bash
+python -c "from antigine.run import main; main(['init', '--name', 'ValidationErrorTest'])"
+```
+**Interactive Steps:**
+1. When prompted for programming language, enter `3` (C++)
+2. When prompted for tech stack, enter `invalidlib+SDL2`
+3. System should show error and suggestions
+4. Enter `SDL2` when prompted again
+
+**Expected Output:**
+```
+Please select a programming language for your project:
+  1. Lua
+  2. Python
+  3. C++  
+  4. C
+
+Select programming language
+Enter choice [1-4]: 3
+
+Available libraries for C++:
+  1. SDL2 - Cross-platform development library for low level access
+  2. OpenGL - Graphics rendering API for 2D and 3D graphics
+  3. GLM - Mathematics library for graphics programming
+  4. Assimp - Asset import library for 3D model loading
+  5. stb_image - Image loading/decoding library
+  6. Bullet - Physics simulation engine
+  7. Dear ImGui - Immediate mode GUI toolkit for debugging
+
+You can specify:
+  - A single library (e.g., 'Love2D', 'Pygame', 'SDL2')
+  - Multiple libraries separated by '+' (e.g., 'SDL2+OpenGL+GLM')
+
+Enter tech stack for C++: invalidlib+SDL2
+✗ Unrecognized library: 'invalidlib'
+Did you mean:
+  - SDL2
+  - stb_image
+Please try again.
+
+Enter tech stack for C++: SDL2
+✓ Recognized library: SDL2
+
+[INFO] Initializing Antigine project 'ValidationErrorTest' in D:\TestProjects\AntigineManualTest5
+[INFO] Tech Stack: SDL2
+[INFO] Creating project folders...
+[INFO] Configuring project...
+[INFO] Initializing project ledger...
+[OK] Successfully initialized Antigine project 'ValidationErrorTest'!
+```
+
+### Test 2.6: Case Insensitive Tech Stack Input
+**Description:** Test case insensitive matching for tech stack names
+**Setup:**
+```bash
+mkdir "D:\TestProjects\AntigineManualTest6"
+cd "D:\TestProjects\AntigineManualTest6"
+```
+**Command:**
+```bash
+python -c "from antigine.run import main; main(['init', '--name', 'CaseInsensitiveTest'])"
+```
+**Interactive Steps:**
+1. When prompted for programming language, enter `c` (matches both "C++" and "C")
+2. System should show ambiguous match error  
+3. Enter `1` to select first language (Lua)
+4. Enter `love2d` (lowercase) for tech stack
+
+**Expected Output:**
+```
+Please select a programming language for your project:
+  1. Lua
+  2. Python
+  3. C++  
+  4. C
+
+Select programming language
+Enter choice [1-4]: c
+Ambiguous choice. Matches: C++, C
 
 Select programming language
 Enter choice [1-4]: 1
@@ -244,12 +361,18 @@ You can specify:
   - A single library (e.g., 'Love2D', 'Pygame', 'SDL2')
   - Multiple libraries separated by '+' (e.g., 'SDL2+OpenGL+GLM')
 
-Enter tech stack for Lua: 
-[ERROR] Tech stack is required. Please specify at least one library.
-Error: Tech stack input is required
+Enter tech stack for Lua: love2d
+✓ Recognized library: Love2D
+
+[INFO] Initializing Antigine project 'CaseInsensitiveTest' in D:\TestProjects\AntigineManualTest6
+[INFO] Tech Stack: love2d
+[INFO] Creating project folders...
+[INFO] Configuring project...
+[INFO] Initializing project ledger...
+[OK] Successfully initialized Antigine project 'CaseInsensitiveTest'!
 ```
 
-### Test 2.5: Project Already Exists Error
+### Test 2.7: Project Already Exists Error
 **Description:** Verify error when trying to init in existing project
 **Setup:** Use directory from Test 2.1
 **Command:**
@@ -881,6 +1004,8 @@ rmdir /s "D:\TestProjects\AntigineManualTest1"
 rmdir /s "D:\TestProjects\AntigineManualTest2"
 rmdir /s "D:\TestProjects\AntigineManualTest3"
 rmdir /s "D:\TestProjects\AntigineManualTest4"
+rmdir /s "D:\TestProjects\AntigineManualTest5"
+rmdir /s "D:\TestProjects\AntigineManualTest6"
 rmdir /s "D:\TestProjects\EmptyFolder"
 rmdir /s "D:\TestProjects\ReadOnlyTest"
 rmdir /s "D:\TestProjects\Very"

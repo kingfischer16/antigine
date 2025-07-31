@@ -16,7 +16,7 @@ Philosophy:
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple, TypedDict
+from typing import Dict, Any, List, Optional, Tuple, TypedDict, Union
 from dataclasses import dataclass
 from enum import Enum
 
@@ -30,6 +30,7 @@ class SectionStatus(Enum):
 
     NOT_STARTED = "not_started"
     IN_PROGRESS = "in_progress"
+    PENDING_REVIEW = "pending_review"
     COMPLETED = "completed"
     NEEDS_REVISION = "needs_revision"
 
@@ -40,6 +41,48 @@ class SectionDefinition(TypedDict):
     name: str
     description: str
     criteria: List[str]
+
+
+class StructuredContent(TypedDict, total=False):
+    """TypedDict for structured section content."""
+
+    raw_content: str
+    user_responses: List[str]
+    structured_at: str
+    error: str  # Optional, only present when there's an error
+
+
+class SectionInfo(TypedDict):
+    """TypedDict for section information."""
+
+    section_number: int
+    name: str
+    description: str
+    criteria: List[str]
+    status: str
+    questions_asked_count: int
+    responses_given_count: int
+
+
+class SectionPreview(TypedDict):
+    """TypedDict for section preview information."""
+
+    section_number: int
+    name: str
+    description: str
+
+
+class SessionStatus(TypedDict):
+    """TypedDict for session status information."""
+
+    session_id: str
+    current_section: int
+    completed_sections: int
+    total_sections: int
+    completion_percentage: float
+    tech_stack: str
+    language: str
+    is_completed: bool
 
 
 @dataclass
@@ -53,7 +96,7 @@ class SectionData:
     status: SectionStatus
     questions_asked: List[str]
     user_responses: List[str]
-    structured_content: Dict[str, Any]
+    structured_content: StructuredContent
     started_at: Optional[str] = None
     completed_at: Optional[str] = None
 
@@ -190,6 +233,21 @@ class GDDController:
 
         self.current_session: Optional[GDDSession] = None
 
+    def _extract_response_content(self, response: Any) -> str:
+        """
+        Safely extract string content from LLM response.
+
+        Args:
+            response: LLM response object
+
+        Returns:
+            str: The response content as a string
+        """
+        if hasattr(response, "content"):
+            content = response.content
+            return str(content) if content is not None else ""
+        return str(response)
+
     def _get_project_context(self) -> Tuple[str, str]:
         """Get tech stack and language from project configuration."""
         try:
@@ -198,7 +256,12 @@ class GDDController:
             tech_stack = config.get("tech_stack", "Unknown")
             language = config.get("project_language", "Unknown")
             return tech_stack, language
-        except Exception:
+        except (AttributeError, TypeError, KeyError):
+            # Expected errors when project_data is malformed or missing
+            return "Unknown", "Unknown"
+        except Exception as e:
+            # Log unexpected errors for debugging
+            print(f"Warning: Unexpected error reading project context: {e}")
             return "Unknown", "Unknown"
 
     # === Session Management ===
@@ -378,11 +441,7 @@ Format as a simple numbered list:
 
         try:
             response = self.llm.invoke(prompt)
-            content = response.content if hasattr(response, "content") else str(response)
-
-            # Ensure content is a string for parsing
-            if not isinstance(content, str):
-                content = str(content)
+            content = self._extract_response_content(response)
 
             # Parse questions from response
             questions = []
@@ -390,14 +449,28 @@ Format as a simple numbered list:
                 line = line.strip()
                 if line and (line[0].isdigit() or line.startswith("-")):
                     # Remove number/bullet and clean up
-                    question = line.split(".", 1)[-1].split("-", 1)[-1].strip()
+                    if line.startswith("-"):
+                        # Handle bullet format: "- question text"
+                        question = line[1:].strip()
+                    elif "." in line and line[0].isdigit():
+                        # Handle numbered format: "1. question text"
+                        question = line.split(".", 1)[1].strip()
+                    else:
+                        # Fallback: use the whole line
+                        question = line.strip()
+
                     if question:
                         questions.append(question)
 
             return questions[:3]  # Limit to 3 questions max
 
-        except Exception:
-            # Fallback questions if LLM fails
+        except (ConnectionError, TimeoutError, ValueError) as e:
+            # Expected LLM-related errors
+            print(f"Warning: LLM error in question generation: {e}")
+            return [f"What are the key aspects of {section_def['name'].lower()} for your game?"]
+        except Exception as e:
+            # Unexpected errors - log for debugging
+            print(f"Warning: Unexpected error in question generation: {e}")
             return [f"What are the key aspects of {section_def['name'].lower()} for your game?"]
 
     def _evaluate_response_completeness(
@@ -419,7 +492,7 @@ Format as a simple numbered list:
         combined_response = "\n\n".join(all_responses)
 
         # First, extract content for each criterion
-        criteria_list = chr(10).join(f"- {criterion}" for criterion in section_def['criteria'])
+        criteria_list = chr(10).join(f"- {criterion}" for criterion in section_def["criteria"])
         extraction_prompt = f"""You are helping extract and organize content from user responses for a GDD.
 
 SECTION: {section_def['name']}
@@ -443,33 +516,28 @@ Be generous in extraction - if you can reasonably infer information from the use
 
         try:
             extraction_response = self.llm.invoke(extraction_prompt)
-            extraction_content = (extraction_response.content
-                                  if hasattr(extraction_response, "content")
-                                  else str(extraction_response))
-
-            # Ensure extraction_content is a string
-            if not isinstance(extraction_content, str):
-                extraction_content = str(extraction_content)
+            extraction_content = self._extract_response_content(extraction_response)
 
             # Parse extracted content
             extracted_criteria = {}
             missing_criteria = []
 
-            criterion_lines = [line.strip() for line in extraction_content.split("\n")
-                               if line.strip().startswith("CRITERION")]
+            criterion_lines = [
+                line.strip() for line in extraction_content.split("\n") if line.strip().startswith("CRITERION")
+            ]
 
             for i, line in enumerate(criterion_lines, 1):
                 if "MISSING" in line.upper():
-                    missing_criteria.append(section_def['criteria'][i-1])
+                    missing_criteria.append(section_def["criteria"][i - 1])
                 else:
                     # Extract the content after the colon
                     content_part = line.split(":", 1)[1].strip() if ":" in line else ""
                     if content_part and content_part.upper() != "MISSING":
-                        extracted_criteria[section_def['criteria'][i-1]] = content_part
+                        extracted_criteria[section_def["criteria"][i - 1]] = content_part
 
             # Determine if section is complete
             if len(missing_criteria) == 0:
-                criteria_keys = ', '.join(extracted_criteria.keys())
+                criteria_keys = ", ".join(extracted_criteria.keys())
                 return True, f"✅ Section completed! All criteria covered: {criteria_keys}"
 
             # Generate feedback showing what was understood and what's missing
@@ -489,9 +557,15 @@ Be generous in extraction - if you can reasonably infer information from the use
             feedback = "\n".join(feedback_parts)
             return False, feedback
 
-        except Exception:
-            # Fallback to original approach on error
-            criteria_str = ', '.join(section_def['criteria'])
+        except (ConnectionError, TimeoutError, ValueError) as e:
+            # Expected LLM-related errors
+            print(f"Warning: LLM error in response evaluation: {e}")
+            criteria_str = ", ".join(section_def["criteria"])
+            return False, f"Unable to process response. Please provide more details about: {criteria_str}"
+        except Exception as e:
+            # Unexpected errors - log for debugging
+            print(f"Warning: Unexpected error in response evaluation: {e}")
+            criteria_str = ", ".join(section_def["criteria"])
             return False, f"Unable to process response. Please provide more details about: {criteria_str}"
 
     def _extract_missing_criteria_from_feedback(self, feedback: str, all_criteria: List[str]) -> List[str]:
@@ -508,7 +582,7 @@ Be generous in extraction - if you can reasonably infer information from the use
         missing_criteria = []
 
         # Look for criteria mentioned in the "I still need information about:" section
-        lines = feedback.split('\n')
+        lines = feedback.split("\n")
         in_missing_section = False
 
         for line in lines:
@@ -516,13 +590,12 @@ Be generous in extraction - if you can reasonably infer information from the use
             if "I still need information about:" in line:
                 in_missing_section = True
                 continue
-            elif in_missing_section and line.startswith('•'):
+            elif in_missing_section and line.startswith("•"):
                 # Extract the criterion from the bullet point
                 criterion_text = line[1:].strip()  # Remove bullet point
                 # Match against actual criteria
                 for criterion in all_criteria:
-                    if (criterion.lower() in criterion_text.lower() or
-                            criterion_text.lower() in criterion.lower()):
+                    if criterion.lower() in criterion_text.lower() or criterion_text.lower() in criterion.lower():
                         missing_criteria.append(criterion)
                         break
 
@@ -572,11 +645,7 @@ Format as a simple numbered list:
 
         try:
             response = self.llm.invoke(prompt)
-            content = response.content if hasattr(response, "content") else str(response)
-
-            # Ensure content is a string
-            if not isinstance(content, str):
-                content = str(content)
+            content = self._extract_response_content(response)
 
             # Parse questions from response
             questions = []
@@ -584,20 +653,35 @@ Format as a simple numbered list:
                 line = line.strip()
                 if line and (line[0].isdigit() or line.startswith("-")):
                     # Remove numbering and add to questions
-                    question = line.split(".", 1)[1].strip() if "." in line else line.strip()
+                    if line.startswith("-"):
+                        # Handle bullet format: "- question text"
+                        question = line[1:].strip()
+                    elif "." in line and line[0].isdigit():
+                        # Handle numbered format: "1. question text"
+                        question = line.split(".", 1)[1].strip()
+                    else:
+                        # Fallback: use the whole line
+                        question = line.strip()
+
                     if question and not question.startswith("[") and not question.startswith("Format"):
                         questions.append(question)
 
-            criteria_str = ', '.join(missing_criteria)
+            criteria_str = ", ".join(missing_criteria)
             fallback_question = f"Can you provide more details about: {criteria_str}?"
             return questions[:2] if questions else [fallback_question]
 
-        except Exception:
-            # Fallback questions for missing criteria
-            criteria_str = ', '.join(missing_criteria)
+        except (ConnectionError, TimeoutError, ValueError) as e:
+            # Expected LLM-related errors
+            print(f"Warning: LLM error in targeted question generation: {e}")
+            criteria_str = ", ".join(missing_criteria)
+            return [f"Can you provide more details about: {criteria_str}?"]
+        except Exception as e:
+            # Unexpected errors - log for debugging
+            print(f"Warning: Unexpected error in targeted question generation: {e}")
+            criteria_str = ", ".join(missing_criteria)
             return [f"Can you provide more details about: {criteria_str}?"]
 
-    def _structure_section_content(self, section_num: int, user_responses: List[str]) -> Dict[str, Any]:
+    def _structure_section_content(self, section_num: int, user_responses: List[str]) -> StructuredContent:
         """
         Use Flash Lite to structure user responses into organized section content.
 
@@ -606,7 +690,7 @@ Format as a simple numbered list:
             user_responses (List[str]): All user responses for the section
 
         Returns:
-            Dict[str, Any]: Structured content
+            StructuredContent: Structured content with standardized fields
         """
         section_def = self.SECTIONS_DEFINITION[section_num]
         combined_responses = "\n\n".join(user_responses)
@@ -624,7 +708,7 @@ Focus on clarity and organization. Remove redundancy but preserve all important 
 
         try:
             response = self.llm.invoke(prompt)
-            content = response.content if hasattr(response, "content") else str(response)
+            content = self._extract_response_content(response)
 
             return {
                 "raw_content": content,
@@ -702,6 +786,10 @@ Focus on clarity and organization. Remove redundancy but preserve all important 
         current_section_num = self.current_session.current_section
         section = self.current_session.sections[current_section_num]
 
+        # Handle section review commands if section is pending review
+        if section.status == SectionStatus.PENDING_REVIEW:
+            return self._handle_section_review(user_response.strip().lower(), current_section_num)
+
         try:
             # Add user response
             section.user_responses.append(user_response)
@@ -712,34 +800,36 @@ Focus on clarity and organization. Remove redundancy but preserve all important 
             )
 
             if is_complete:
-                # Section is complete, structure the content
+                # Section is complete, structure the content and put it in review
                 structured_content = self._structure_section_content(current_section_num, section.user_responses)
 
                 section.structured_content = structured_content
-                section.status = SectionStatus.COMPLETED
-                section.completed_at = datetime.now().isoformat()
-
-                # Update game context with key insights
-                self._update_game_context(current_section_num, structured_content)
+                section.status = SectionStatus.PENDING_REVIEW
 
                 # Save session
                 self._save_session()
 
-                # Check if all sections are complete
-                if self._all_sections_completed():
-                    self.current_session.is_completed = True
-                    self.current_session.completion_time = datetime.now().isoformat()
-                    self._save_session()
-                    return True, f"✅ Section {current_section_num} completed! GDD creation is now complete.", None
-                else:
-                    return True, f"✅ Section {current_section_num} completed! {reason}", None
+                # Return structured content for review
+                section_def = self.SECTIONS_DEFINITION[current_section_num]
+                review_message = (
+                    f"📋 Great! I've organized your input for Section {current_section_num}: "
+                    f"{section_def['name']}\n\n"
+                )
+                review_message += f"**{section_def['name']}**\n"
+                review_message += structured_content.get("raw_content", "")
+                review_message += "\n\n💭 Does this capture what you intended? You can:\n"
+                review_message += "• Type 'approve' to finalize this section and continue\n"
+                review_message += "• Type 'revise' to make changes\n"
+                review_message += "• Add any additional thoughts or corrections"
+
+                return True, review_message, None
             else:
                 # Need more information, generate targeted follow-up questions
                 context = self._build_context_summary()
 
                 # Extract missing criteria from the reason/feedback
                 section_def = self.SECTIONS_DEFINITION[current_section_num]
-                missing_criteria = self._extract_missing_criteria_from_feedback(reason, section_def['criteria'])
+                missing_criteria = self._extract_missing_criteria_from_feedback(reason, section_def["criteria"])
 
                 follow_up_questions = self._generate_targeted_questions(current_section_num, context, missing_criteria)
                 section.questions_asked.extend(follow_up_questions)
@@ -751,6 +841,157 @@ Focus on clarity and organization. Remove redundancy but preserve all important 
 
         except Exception as e:
             return False, f"Error processing response: {str(e)}", None
+
+    def _handle_section_review(self, user_input: str, section_num: int) -> Tuple[bool, str, Optional[List[str]]]:
+        """
+        Handle user input during section review phase.
+
+        Args:
+            user_input (str): User's input (lowercased and stripped)
+            section_num (int): Current section number
+
+        Returns:
+            Tuple[bool, str, Optional[List[str]]]: (success, feedback, next_questions_or_none)
+        """
+        if not self.current_session:
+            return False, "No active session", None
+
+        try:
+            if user_input in ["approve", "approved", "yes", "y", "looks good", "continue"]:
+                return self._approve_section(section_num)
+            elif user_input in ["revise", "revision", "change", "edit", "no", "n"]:
+                return self._request_section_revision(section_num)
+            else:
+                # User provided additional input - add it and re-evaluate
+                return self._handle_section_addition(user_input, section_num)
+
+        except Exception as e:
+            return False, f"Error handling section review: {str(e)}", None
+
+    def _approve_section(self, section_num: int) -> Tuple[bool, str, Optional[List[str]]]:
+        """
+        Approve the current section and move to next phase.
+
+        Args:
+            section_num (int): Section number to approve
+
+        Returns:
+            Tuple[bool, str, Optional[List[str]]]: (success, feedback, next_questions_or_none)
+        """
+        if not self.current_session:
+            return False, "No active session", None
+
+        section = self.current_session.sections[section_num]
+
+        # Mark section as completed
+        section.status = SectionStatus.COMPLETED
+        section.completed_at = datetime.now().isoformat()
+
+        # Update game context with key insights
+        self._update_game_context(section_num, section.structured_content)
+
+        # Save session
+        self._save_session()
+
+        # Check if all sections are complete
+        if self._all_sections_completed():
+            self.current_session.is_completed = True
+            self.current_session.completion_time = datetime.now().isoformat()
+            self._save_session()
+            return True, f"✅ Section {section_num} approved! GDD creation is now complete.", None
+        else:
+            return True, f"✅ Section {section_num} approved and saved!", None
+
+    def _request_section_revision(self, section_num: int) -> Tuple[bool, str, Optional[List[str]]]:
+        """
+        Handle user request to revise the section.
+
+        Args:
+            section_num (int): Section number to revise
+
+        Returns:
+            Tuple[bool, str, Optional[List[str]]]: (success, feedback, next_questions_or_none)
+        """
+        if not self.current_session:
+            return False, "No active session", None
+
+        section = self.current_session.sections[section_num]
+
+        # Reset section to in progress
+        section.status = SectionStatus.IN_PROGRESS
+        section.structured_content = {}
+
+        # Save session
+        self._save_session()
+
+        # Ask what they'd like to change
+        revision_message = f"📝 Let's revise Section {section_num}. What would you like to change or add?\n\n"
+        revision_message += "You can:\n"
+        revision_message += "• Tell me what specific aspects need adjustment\n"
+        revision_message += "• Provide additional information\n"
+        revision_message += "• Completely rewrite any part"
+
+        return True, revision_message, None
+
+    def _handle_section_addition(self, user_input: str, section_num: int) -> Tuple[bool, str, Optional[List[str]]]:
+        """
+        Handle additional user input during review phase.
+
+        Args:
+            user_input (str): User's additional input
+            section_num (int): Current section number
+
+        Returns:
+            Tuple[bool, str, Optional[List[str]]]: (success, feedback, next_questions_or_none)
+        """
+        if not self.current_session:
+            return False, "No active session", None
+
+        section = self.current_session.sections[section_num]
+
+        # Add the new input to responses
+        section.user_responses.append(user_input)
+
+        # Reset to in progress and re-structure
+        section.status = SectionStatus.IN_PROGRESS
+
+        # Re-evaluate with all responses including the new one
+        is_complete, reason = self._evaluate_response_completeness(section_num, user_input, section.user_responses[:-1])
+
+        if is_complete:
+            # Re-structure content with the additional input
+            structured_content = self._structure_section_content(section_num, section.user_responses)
+            section.structured_content = structured_content
+            section.status = SectionStatus.PENDING_REVIEW
+
+            # Save session
+            self._save_session()
+
+            # Return updated content for review
+            section_def = self.SECTIONS_DEFINITION[section_num]
+            review_message = (
+                f"📋 I've updated Section {section_num}: {section_def['name']} " f"with your additional input:\n\n"
+            )
+            review_message += f"**{section_def['name']}**\n"
+            review_message += structured_content.get("raw_content", "")
+            review_message += "\n\n💭 Does this look better? You can:\n"
+            review_message += "• Type 'approve' to finalize this section\n"
+            review_message += "• Type 'revise' to make more changes\n"
+            review_message += "• Add more thoughts or corrections"
+
+            return True, review_message, None
+        else:
+            # Still need more information
+            context = self._build_context_summary()
+            section_def = self.SECTIONS_DEFINITION[section_num]
+            missing_criteria = self._extract_missing_criteria_from_feedback(reason, section_def["criteria"])
+            follow_up_questions = self._generate_targeted_questions(section_num, context, missing_criteria)
+            section.questions_asked.extend(follow_up_questions)
+
+            # Save session
+            self._save_session()
+
+            return True, f"📝 Thanks for the additional input! {reason}", follow_up_questions
 
     def _build_context_summary(self) -> str:
         """Build a summary of completed sections for context."""
@@ -779,7 +1020,7 @@ Focus on clarity and organization. Remove redundancy but preserve all important 
 
         return "\n".join(context_parts)
 
-    def _update_game_context(self, section_num: int, structured_content: Dict[str, Any]) -> None:
+    def _update_game_context(self, section_num: int, structured_content: StructuredContent) -> None:
         """Update persistent game context with key information from completed section."""
         if not self.current_session:
             return
@@ -810,7 +1051,7 @@ Focus on clarity and organization. Remove redundancy but preserve all important 
 
         return all(section.status == SectionStatus.COMPLETED for section in self.current_session.sections.values())
 
-    def get_current_section_info(self) -> Dict[str, Any]:
+    def get_current_section_info(self) -> Union[SectionInfo, Dict[str, str]]:
         """Get information about the current section."""
         if not self.current_session:
             return {"error": "No active session"}
@@ -828,7 +1069,7 @@ Focus on clarity and organization. Remove redundancy but preserve all important 
             "responses_given_count": len(section.user_responses),
         }
 
-    def get_next_section_preview(self) -> Optional[Dict[str, Any]]:
+    def get_next_section_preview(self) -> Optional[SectionPreview]:
         """Get preview of the next section."""
         if not self.current_session:
             return None
@@ -893,7 +1134,7 @@ Focus on clarity and organization. Remove redundancy but preserve all important 
         except Exception as e:
             return False, f"Error generating final GDD: {str(e)}"
 
-    def get_session_status(self) -> Dict[str, Any]:
+    def get_session_status(self) -> Union[SessionStatus, Dict[str, str]]:
         """Get current session status information."""
         if not self.current_session:
             return {"error": "No active session"}

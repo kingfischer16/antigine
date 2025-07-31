@@ -8,7 +8,7 @@ Uses the new atomic Flash Lite architecture with deterministic Python control.
 
 # Imports
 import argparse
-from typing import Optional, List, Any
+from typing import Optional, List
 
 from ...core.agents.gdd_creator import GDDController
 from ..utils.output import print_success, print_error, print_info
@@ -263,7 +263,7 @@ class GDDCommands:
                 print()
                 print("🤖 Coach:", feedback)
 
-                # If section is complete and GDD is done
+                # If section is approved and GDD is done
                 if next_questions is None and "GDD creation is now complete" in feedback:
                     print()
                     print_success("🎉 Congratulations! Your GDD is complete!")
@@ -279,8 +279,8 @@ class GDDCommands:
 
                     break
 
-                # If section is complete but more sections remain
-                elif next_questions is None:
+                # If section is approved but more sections remain
+                elif next_questions is None and "approved and saved" in feedback:
                     print()
                     next_preview = self.controller.get_next_section_preview()
                     if next_preview:
@@ -329,6 +329,8 @@ class GDDCommands:
         print()
         print_info("📋 GDD Creation Instructions:")
         print("• Answer the coach's questions to build your Game Design Document")
+        print("• When a section is complete, you'll review the organized content")
+        print("• Type 'approve' to accept a section, 'revise' to make changes")
         print("• Type 'help' to see available commands")
         print("• Type 'status' to check your progress")
         print("• Type 'next' to see what's coming up")
@@ -350,8 +352,10 @@ class GDDCommands:
         print()
         print_info("💡 Tips:")
         print("• Be specific and detailed in your responses")
-        print("• The coach will evaluate when you've provided enough information")
-        print("• You can always return to previous sections if needed")
+        print("• When a section is ready for review, you'll see the organized content")
+        print("• Type 'approve' to accept a section, 'revise' to make changes")
+        print("• You can always add more details during the review phase")
+        print("• You can return to previous sections if needed")
         print()
 
     def _show_progress_summary(self) -> None:
@@ -413,7 +417,7 @@ class GDDCommands:
             print_error(f"Failed to generate preview: {e}")
 
 
-def setup_gdd_parser(subparsers: argparse._SubParsersAction) -> Any:
+def setup_gdd_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
     """Set up the GDD command parser."""
     gdd_parser = subparsers.add_parser("gdd", help="Game Design Document creation and management")
     gdd_subparsers = gdd_parser.add_subparsers(dest="gdd_command", help="GDD commands")

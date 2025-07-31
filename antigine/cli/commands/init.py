@@ -162,10 +162,7 @@ def _get_validated_tech_stack(language: str, available_libraries: dict) -> str:
         str: Validated tech stack string
     """
     while True:
-        tech_stack = prompt_for_input(
-            f"Enter tech stack for {language}",
-            required=True
-        )
+        tech_stack = prompt_for_input(f"Enter tech stack for {language}", required=True)
 
         # Parse and validate the tech stack
         validation_result = _validate_tech_stack_input(tech_stack, available_libraries)
@@ -211,7 +208,7 @@ def _validate_tech_stack_input(tech_stack: str, available_libraries: dict) -> di
         dict: Validation result with status, errors, warnings, suggestions
     """
     # Parse components
-    components = [comp.strip() for comp in tech_stack.split('+') if comp.strip()]
+    components = [comp.strip() for comp in tech_stack.split("+") if comp.strip()]
 
     if not components:
         return {
@@ -219,7 +216,7 @@ def _validate_tech_stack_input(tech_stack: str, available_libraries: dict) -> di
             "errors": ["Tech stack cannot be empty"],
             "warnings": [],
             "suggestions": [],
-            "recognized_libraries": []
+            "recognized_libraries": [],
         }
 
     recognized_libraries = []
@@ -264,7 +261,7 @@ def _validate_tech_stack_input(tech_stack: str, available_libraries: dict) -> di
         "errors": errors,
         "warnings": warnings,
         "suggestions": list(set(suggestions)),  # Remove duplicates
-        "recognized_libraries": recognized_libraries
+        "recognized_libraries": recognized_libraries,
     }
 
 

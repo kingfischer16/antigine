@@ -134,14 +134,14 @@ class GDDController:
                 "Clear one-sentence game description",
                 "Target audience definition",
                 "Core emotional experience",
-                "3-5 design pillars that guide decisions",
+                "2-3 core design pillars that guide decisions",
             ],
         },
         2: {
             "name": "MDA Breakdown",
             "description": "Mechanics, Dynamics, and Aesthetics with ruthless focus",
             "criteria": [
-                "Primary mechanics (max 3-5 core mechanics)",
+                "Primary mechanics (1-2 core mechanics maximum)",
                 "Intended dynamics (player behaviors)",
                 "Target aesthetics (emotional responses)",
                 "How they connect to create the experience",
@@ -161,7 +161,7 @@ class GDDController:
             "name": "MVP Feature Set",
             "description": "Absolute minimum scope with ruthless prioritization",
             "criteria": [
-                "Must-have features for core experience",
+                "Maximum 3-5 essential features that deliver core experience",
                 "Features explicitly cut from MVP",
                 "Success metrics for MVP validation",
                 "Estimated development time/scope",
@@ -201,7 +201,7 @@ class GDDController:
             "name": "Development Roadmap",
             "description": "Realistic timeline with frequent validation points",
             "criteria": [
-                "Major milestones and deliverables",
+                "Major milestones and deliverables (every 2-4 weeks maximum)",
                 "Risk assessment and mitigation",
                 "Resource requirements",
                 "Regular check-in and pivot points",
@@ -406,11 +406,11 @@ class GDDController:
 
     def _generate_questions(self, section_num: int, context: str = "") -> List[str]:
         """
-        Use Flash Lite to generate focused questions for a section.
+        Use Flash Lite to generate contextual questions for a section.
 
         Args:
             section_num (int): Section number
-            context (str): Additional context if available
+            context (str): Complete context from previous sections
 
         Returns:
             List[str]: Generated questions
@@ -419,25 +419,30 @@ class GDDController:
 
         prompt = f"""You are helping create a Game Design Document for a {self.tech_stack}/{self.language} game.
 
-SECTION: {section_def['name']}
+CURRENT SECTION: {section_def['name']}
 DESCRIPTION: {section_def['description']}
 
 CRITERIA TO COVER:
 {chr(10).join(f"- {criterion}" for criterion in section_def['criteria'])}
 
-GAME CONTEXT SO FAR:
+COMPLETE GAME CONTEXT SO FAR:
 {context if context else "This is the first section - no previous context available."}
 
-Generate 2-3 specific, focused questions that will help gather the information needed to satisfy all the criteria above.
-Make the questions:
-1. Specific and actionable
-2. Appropriate for indie game development
-3. Focused on getting concrete, useful answers
+Your job is to generate 2-3 contextual, conversational questions that:
+
+1. REFERENCE what has already been established in previous sections (show you understand the game)
+2. Ask for the missing information needed to complete this section
+3. Feel like a natural conversation with someone who knows the game concept
+4. Are specific to indie solo development
+
+If the context already provides substantial information for some criteria, acknowledge that and focus questions on what's still needed.
+
+Example style: "Based on your [reference to previous context], I'm thinking your [current section topic] might involve [suggestion based on context]. Does this sound right, or would you like to take a different approach?"
 
 Format as a simple numbered list:
-1. [question]
-2. [question]
-3. [question]"""
+1. [contextual question]
+2. [contextual question]
+3. [contextual question if needed]"""
 
         try:
             response = self.llm.invoke(prompt)
@@ -450,34 +455,130 @@ Format as a simple numbered list:
                 if line and (line[0].isdigit() or line.startswith("-")):
                     # Remove number/bullet and clean up
                     if line.startswith("-"):
-                        # Handle bullet format: "- question text"
                         question = line[1:].strip()
                     elif "." in line and line[0].isdigit():
-                        # Handle numbered format: "1. question text"
                         question = line.split(".", 1)[1].strip()
                     else:
-                        # Fallback: use the whole line
                         question = line.strip()
 
-                    if question:
+                    if question and not question.startswith("[") and not question.startswith("Format"):
                         questions.append(question)
 
-            return questions[:3]  # Limit to 3 questions max
+            return questions[:3] if questions else [f"What are the key aspects of {section_def['name'].lower()} for your game?"]
 
         except (ConnectionError, TimeoutError, ValueError) as e:
-            # Expected LLM-related errors
             print(f"Warning: LLM error in question generation: {e}")
             return [f"What are the key aspects of {section_def['name'].lower()} for your game?"]
         except Exception as e:
-            # Unexpected errors - log for debugging
             print(f"Warning: Unexpected error in question generation: {e}")
             return [f"What are the key aspects of {section_def['name'].lower()} for your game?"]
+
+    def _can_generate_preview(self, section_num: int, context: str) -> bool:
+        """
+        Determine if we have enough context to generate a preview instead of asking questions.
+        
+        Args:
+            section_num (int): Section number
+            context (str): Complete context from previous sections
+            
+        Returns:
+            bool: True if preview generation is appropriate
+        """
+        # Only generate previews for sections 3+ where we have substantial context
+        if section_num < 3:
+            return False
+            
+        # Must have meaningful context (not just tech stack info)
+        if not context or len(context.strip()) < 200:
+            return False
+            
+        # Check if context contains completed sections
+        return "SECTION 1:" in context and "SECTION 2:" in context
+
+    def _generate_section_preview(self, section_num: int, context: str) -> Tuple[str, List[str]]:
+        """
+        Generate a preview of what the section should contain based on context.
+        
+        Args:
+            section_num (int): Section number
+            context (str): Complete context from previous sections
+            
+        Returns:
+            Tuple[str, List[str]]: (preview_content, follow_up_questions)
+        """
+        section_def = self.SECTIONS_DEFINITION[section_num]
+        criteria_list = chr(10).join(f"- {criterion}" for criterion in section_def["criteria"])
+        
+        preview_prompt = f"""You are helping create a Game Design Document for a {self.tech_stack}/{self.language} game.
+
+CURRENT SECTION: {section_def['name']}
+DESCRIPTION: {section_def['description']}
+
+CRITERIA TO COVER:
+{criteria_list}
+
+COMPLETE GAME CONTEXT:
+{context}
+
+Based on the rich context from previous sections, generate a thoughtful preview of what this section should contain. Be specific and reference the established game elements.
+
+Your preview should:
+1. Draw logical conclusions from the previous sections
+2. Address all the required criteria
+3. Feel conversational and show understanding of their game
+4. Be detailed enough to be useful, but leave room for the user to modify
+
+After the preview, ask 1-2 follow-up questions to confirm or refine specific aspects.
+
+Format your response as:
+PREVIEW:
+[Detailed preview content organized by criteria]
+
+FOLLOW-UP QUESTIONS:
+1. [Question to confirm or refine the preview]
+2. [Optional second question]"""
+
+        try:
+            response = self.llm.invoke(preview_prompt)
+            content = self._extract_response_content(response)
+            
+            # Parse preview and questions
+            parts = content.split("FOLLOW-UP QUESTIONS:")
+            preview_content = parts[0].replace("PREVIEW:", "").strip()
+            
+            questions = []
+            if len(parts) > 1:
+                question_text = parts[1].strip()
+                for line in question_text.split("\n"):
+                    line = line.strip()
+                    if line and (line[0].isdigit() or line.startswith("-")):
+                        if line.startswith("-"):
+                            question = line[1:].strip()
+                        elif "." in line and line[0].isdigit():
+                            question = line.split(".", 1)[1].strip()
+                        else:
+                            question = line.strip()
+                        
+                        if question and not question.startswith("["):
+                            questions.append(question)
+            
+            # Fallback questions if none were generated
+            if not questions:
+                questions = [f"Does this capture your vision for {section_def['name'].lower()}?",
+                           "What would you like to adjust or add?"]
+            
+            return preview_content, questions[:2]
+            
+        except Exception as e:
+            print(f"Warning: Preview generation failed: {e}")
+            # Fallback to regular question generation
+            return "", self._generate_questions(section_num, context)
 
     def _evaluate_response_completeness(
         self, section_num: int, user_response: str, previous_responses: Optional[List[str]] = None
     ) -> Tuple[bool, str]:
         """
-        Extract content from user responses and evaluate completeness using content extraction approach.
+        Evaluate if section is complete by checking user responses against criteria with full context.
 
         Args:
             section_num (int): Section number
@@ -490,61 +591,71 @@ Format as a simple numbered list:
         section_def = self.SECTIONS_DEFINITION[section_num]
         all_responses = (previous_responses or []) + [user_response]
         combined_response = "\n\n".join(all_responses)
+        
+        # Get complete context from previous sections
+        full_context = self._build_context_summary()
 
-        # First, extract content for each criterion
         criteria_list = chr(10).join(f"- {criterion}" for criterion in section_def["criteria"])
-        extraction_prompt = f"""You are helping extract and organize content from user responses for a GDD.
+        
+        evaluation_prompt = f"""You are helping evaluate if a GDD section is complete.
 
-SECTION: {section_def['name']}
+CURRENT SECTION: {section_def['name']}
 REQUIRED CRITERIA:
 {criteria_list}
 
-USER RESPONSES:
+COMPLETE GAME CONTEXT (from previous sections):
+{full_context}
+
+USER RESPONSES FOR THIS SECTION:
 {combined_response}
 
-Your job is to extract what the user has provided for each criterion, even if embedded in narrative form.
+Your job is to determine if the section is complete by checking if ALL criteria are satisfied, considering both:
+1. The complete game context from previous sections
+2. The user's responses for this section
 
-For each criterion, extract relevant information or mark as "MISSING" if not provided/implied.
+Some criteria might already be partially or fully addressed in previous sections. Be intelligent about this.
+
+For each criterion, extract relevant information or mark as "MISSING" if not adequately covered.
 
 Respond in EXACTLY this format:
-CRITERION 1: [extracted content or MISSING]
-CRITERION 2: [extracted content or MISSING]
-CRITERION 3: [extracted content or MISSING]
-CRITERION 4: [extracted content or MISSING]
+CRITERION 1: [extracted content from context+responses or MISSING]
+CRITERION 2: [extracted content from context+responses or MISSING]
+CRITERION 3: [extracted content from context+responses or MISSING]
+CRITERION 4: [extracted content from context+responses or MISSING]
 
-Be generous in extraction - if you can reasonably infer information from the user's narrative, include it."""
+Be thorough - check both the previous context AND current responses for each criterion."""
 
         try:
-            extraction_response = self.llm.invoke(extraction_prompt)
-            extraction_content = self._extract_response_content(extraction_response)
+            evaluation_response = self.llm.invoke(evaluation_prompt)
+            evaluation_content = self._extract_response_content(evaluation_response)
 
-            # Parse extracted content
+            # Parse evaluation results
             extracted_criteria = {}
             missing_criteria = []
 
             criterion_lines = [
-                line.strip() for line in extraction_content.split("\n") if line.strip().startswith("CRITERION")
+                line.strip() for line in evaluation_content.split("\n") if line.strip().startswith("CRITERION")
             ]
 
             for i, line in enumerate(criterion_lines, 1):
-                if "MISSING" in line.upper():
-                    missing_criteria.append(section_def["criteria"][i - 1])
-                else:
-                    # Extract the content after the colon
-                    content_part = line.split(":", 1)[1].strip() if ":" in line else ""
-                    if content_part and content_part.upper() != "MISSING":
-                        extracted_criteria[section_def["criteria"][i - 1]] = content_part
+                if i <= len(section_def["criteria"]):
+                    if "MISSING" in line.upper():
+                        missing_criteria.append(section_def["criteria"][i - 1])
+                    else:
+                        # Extract the content after the colon
+                        content_part = line.split(":", 1)[1].strip() if ":" in line else ""
+                        if content_part and content_part.upper() != "MISSING":
+                            extracted_criteria[section_def["criteria"][i - 1]] = content_part
 
             # Determine if section is complete
             if len(missing_criteria) == 0:
-                criteria_keys = ", ".join(extracted_criteria.keys())
-                return True, f"✅ Section completed! All criteria covered: {criteria_keys}"
+                return True, f"✅ Section completed! All criteria covered based on context and responses."
 
             # Generate feedback showing what was understood and what's missing
             feedback_parts = []
 
             if extracted_criteria:
-                feedback_parts.append("📝 Here's what I understand so far:")
+                feedback_parts.append("📝 Here's what I understand so far (from context + your responses):")
                 for criterion, content in extracted_criteria.items():
                     feedback_parts.append(f"• **{criterion}**: {content}")
                 feedback_parts.append("")
@@ -554,16 +665,13 @@ Be generous in extraction - if you can reasonably infer information from the use
                 for criterion in missing_criteria:
                     feedback_parts.append(f"• {criterion}")
 
-            feedback = "\n".join(feedback_parts)
-            return False, feedback
+            return False, "\n".join(feedback_parts)
 
         except (ConnectionError, TimeoutError, ValueError) as e:
-            # Expected LLM-related errors
             print(f"Warning: LLM error in response evaluation: {e}")
             criteria_str = ", ".join(section_def["criteria"])
             return False, f"Unable to process response. Please provide more details about: {criteria_str}"
         except Exception as e:
-            # Unexpected errors - log for debugging
             print(f"Warning: Unexpected error in response evaluation: {e}")
             criteria_str = ", ".join(section_def["criteria"])
             return False, f"Unable to process response. Please provide more details about: {criteria_str}"
@@ -683,7 +791,7 @@ Format as a simple numbered list:
 
     def _structure_section_content(self, section_num: int, user_responses: List[str]) -> StructuredContent:
         """
-        Use Flash Lite to structure user responses into organized section content.
+        Use Flash Lite to structure user responses into organized section content with full context.
 
         Args:
             section_num (int): Section number
@@ -694,17 +802,28 @@ Format as a simple numbered list:
         """
         section_def = self.SECTIONS_DEFINITION[section_num]
         combined_responses = "\n\n".join(user_responses)
+        
+        # Get complete context for proper structuring
+        full_context = self._build_context_summary()
 
         prompt = f"""Structure the following user responses into organized content for a Game Design Document section.
 
-SECTION: {section_def['name']}
-USER RESPONSES:
+CURRENT SECTION: {section_def['name']}
+
+COMPLETE GAME CONTEXT (for reference - use actual game title, mechanics, etc.):
+{full_context}
+
+USER RESPONSES FOR THIS SECTION:
 {combined_responses}
 
-Extract and organize the information into a clean, structured format. Create appropriate subsections and bullet
-points. Make it professional and ready for a GDD document.
+Structure the user responses into clean, professional GDD content. Make sure to:
+1. Use the actual game title and details from the context (not placeholders like [Game Title])
+2. Reference specific mechanics, pillars, and elements established in previous sections
+3. Create appropriate subsections and bullet points
+4. Make it sound cohesive with the overall game design
+5. Remove redundancy but preserve all important details
 
-Focus on clarity and organization. Remove redundancy but preserve all important details."""
+The output should feel like part of a unified GDD document, not a standalone section."""
 
         try:
             response = self.llm.invoke(prompt)
@@ -758,14 +877,33 @@ Focus on clarity and organization. Remove redundancy but preserve all important 
             # Build context from previous sections
             context = self._build_context_summary()
 
-            # Generate initial questions
-            questions = self._generate_questions(section_num, context)
-            section.questions_asked.extend(questions)
+            # Check if we can generate a preview instead of questions
+            if self._can_generate_preview(section_num, context):
+                # Generate preview-based approach
+                preview_content, questions = self._generate_section_preview(section_num, context)
+                section.questions_asked.extend(questions)
+                
+                # Save session
+                self._save_session()
+                
+                # Format the response with preview
+                section_def = self.SECTIONS_DEFINITION[section_num]
+                message = f"📋 Started section {section_num}: {section.name}\n\n"
+                message += f"Based on your game concept so far, here's what I think this section should cover:\n\n"
+                message += f"**{section_def['name']}**\n"
+                message += preview_content
+                message += f"\n\n💭 Does this look right? The questions below will help us refine it:"
+                
+                return True, message, questions
+            else:
+                # Generate regular questions
+                questions = self._generate_questions(section_num, context)
+                section.questions_asked.extend(questions)
 
-            # Save session
-            self._save_session()
+                # Save session
+                self._save_session()
 
-            return True, f"Started section {section_num}: {section.name}", questions
+                return True, f"Started section {section_num}: {section.name}", questions
 
         except Exception as e:
             return False, f"Error starting section: {str(e)}", []
@@ -994,29 +1132,36 @@ Focus on clarity and organization. Remove redundancy but preserve all important 
             return True, f"📝 Thanks for the additional input! {reason}", follow_up_questions
 
     def _build_context_summary(self) -> str:
-        """Build a summary of completed sections for context."""
+        """Build complete context from all completed sections and user responses."""
         if not self.current_session:
             return ""
 
         context_parts = []
+        
+        # Add tech stack context
+        context_parts.append(f"GAME PROJECT: {self.tech_stack}/{self.language} game")
+        context_parts.append("")
 
-        # Add game context
-        if self.current_session.game_context:
-            context_parts.append("GAME CONTEXT:")
-            for key, value in self.current_session.game_context.items():
-                context_parts.append(f"- {key}: {value}")
-            context_parts.append("")
-
-        # Add completed sections
-        completed_sections = []
+        # Add all completed section content
         for num in range(1, self.current_session.current_section):
             section = self.current_session.sections.get(num)
             if section and section.status == SectionStatus.COMPLETED:
-                completed_sections.append(f"Section {num} ({section.name}): Completed")
+                context_parts.append(f"=== SECTION {num}: {section.name.upper()} ===")
+                
+                # Include structured content if available
+                if section.structured_content and "raw_content" in section.structured_content:
+                    context_parts.append(section.structured_content["raw_content"])
+                else:
+                    # Fallback to user responses if no structured content
+                    context_parts.append("User responses:")
+                    for response in section.user_responses:
+                        context_parts.append(f"- {response}")
+                        
+                context_parts.append("")
 
-        if completed_sections:
-            context_parts.append("COMPLETED SECTIONS:")
-            context_parts.extend(completed_sections)
+        # If no completed sections yet, just provide tech stack info
+        if not any(context_parts):
+            context_parts = [f"This is a {self.tech_stack}/{self.language} game project. No sections completed yet."]
 
         return "\n".join(context_parts)
 
@@ -1025,24 +1170,10 @@ Focus on clarity and organization. Remove redundancy but preserve all important 
         if not self.current_session:
             return
 
-        # Extract key information based on section
-        if section_num == 1:  # Core Vision
-            # Extract core game description and design pillars
-            if "raw_content" in structured_content:
-                content = structured_content["raw_content"]
-                # Store essential game vision info
-                self.current_session.game_context["core_vision"] = (
-                    content[:200] + "..." if len(content) > 200 else content
-                )
-
-        elif section_num == 2:  # MDA Breakdown
-            if "raw_content" in structured_content:
-                content = structured_content["raw_content"]
-                self.current_session.game_context["mda_summary"] = (
-                    content[:200] + "..." if len(content) > 200 else content
-                )
-
-        # Add other section-specific context extraction as needed
+        # Simple approach: store the complete structured content
+        if "raw_content" in structured_content:
+            section_name = self.SECTIONS_DEFINITION[section_num]["name"]
+            self.current_session.game_context[f"section_{section_num}_{section_name}"] = structured_content["raw_content"]
 
     def _all_sections_completed(self) -> bool:
         """Check if all sections are completed."""

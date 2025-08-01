@@ -7,6 +7,7 @@ CLI command handler for project initialization. Delegates to ProjectSetupManager
 
 import os
 from argparse import Namespace
+from typing import Dict, Any, List
 
 from ...managers.ProjectSetupManager import ProjectSetupManager
 from ..utils.output import print_success, print_error, print_info
@@ -109,9 +110,7 @@ def _get_programming_language(args: Namespace) -> str:
     for i, lang in enumerate(available_languages, 1):
         print_info(f"  {i}. {lang}")
 
-    language = prompt_for_choice(
-        "Select programming language", choices=available_languages, default=None  # type: ignore
-    )
+    language = prompt_for_choice("Select programming language", choices=available_languages, default=None)
 
     return language
 
@@ -150,7 +149,7 @@ def _get_tech_stack(args: Namespace, language: str) -> str:
     return tech_stack
 
 
-def _get_validated_tech_stack(language: str, available_libraries: dict) -> str:
+def _get_validated_tech_stack(language: str, available_libraries: Dict[str, Any]) -> str:
     """
     Get and validate tech stack input from user with enhanced feedback.
 
@@ -196,7 +195,7 @@ def _get_validated_tech_stack(language: str, available_libraries: dict) -> str:
             print_info("Please try again.")
 
 
-def _validate_tech_stack_input(tech_stack: str, available_libraries: dict) -> dict:
+def _validate_tech_stack_input(tech_stack: str, available_libraries: Dict[str, Any]) -> Dict[str, Any]:
     """
     Validate tech stack input and provide detailed feedback.
 
@@ -265,7 +264,7 @@ def _validate_tech_stack_input(tech_stack: str, available_libraries: dict) -> di
     }
 
 
-def _find_close_matches(input_text: str, available_options: list, max_suggestions: int = 3) -> list:
+def _find_close_matches(input_text: str, available_options: List[str], max_suggestions: int = 3) -> List[str]:
     """
     Find close matches for typos or partial inputs.
 

@@ -308,8 +308,13 @@ class GDDController:
 
             return True, f"New GDD session created: {session_id}"
 
+        except (OSError, PermissionError) as e:
+            return False, f"File system error creating session: {str(e)}"
+        except (TypeError, ValueError) as e:
+            return False, f"Data error creating session: {str(e)}"
         except Exception as e:
-            return False, f"Failed to create session: {str(e)}"
+            print(f"Warning: Unexpected error creating session: {e}")
+            return False, "Unexpected error creating session"
 
     def load_existing_session(self) -> Tuple[bool, str]:
         """
@@ -324,6 +329,11 @@ class GDDController:
 
             with open(self.current_session_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
+
+            # Validate required keys exist
+            required_keys = ["session_id", "tech_stack", "language", "sections", "game_context"]
+            if not all(key in data for key in required_keys):
+                return False, "Invalid session file format - missing required fields"
 
             # Reconstruct session object
             sections = {}
@@ -356,8 +366,15 @@ class GDDController:
 
             return True, f"Session loaded: {self.current_session.session_id}"
 
+        except json.JSONDecodeError as e:
+            return False, f"Corrupted session file: {str(e)}"
+        except (KeyError, ValueError, TypeError) as e:
+            return False, f"Invalid session data format: {str(e)}"
+        except (OSError, PermissionError) as e:
+            return False, f"File system error: {str(e)}"
         except Exception as e:
-            return False, f"Failed to load session: {str(e)}"
+            print(f"Warning: Unexpected error loading session: {e}")
+            return False, "Unexpected error loading session"
 
     def _save_session(self) -> None:
         """Save current session to file."""
@@ -399,8 +416,12 @@ class GDDController:
 
             self.current_session.last_updated = datetime.now().isoformat()
 
+        except (OSError, PermissionError) as e:
+            print(f"Warning: File system error saving session: {e}")
+        except (TypeError, ValueError) as e:
+            print(f"Warning: Data serialization error: {e}")
         except Exception as e:
-            print(f"Warning: Failed to save session: {e}")
+            print(f"Warning: Unexpected error saving session: {e}")
 
     # === Atomic LLM Operations ===
 
@@ -435,9 +456,11 @@ Your job is to generate 2-3 contextual, conversational questions that:
 3. Feel like a natural conversation with someone who knows the game concept
 4. Are specific to indie solo development
 
-If the context already provides substantial information for some criteria, acknowledge that and focus questions on what's still needed.
+If the context already provides substantial information for some criteria, acknowledge that and focus
+questions on what's still needed.
 
-Example style: "Based on your [reference to previous context], I'm thinking your [current section topic] might involve [suggestion based on context]. Does this sound right, or would you like to take a different approach?"
+Example style: "Based on your [reference to previous context], I'm thinking your [current section topic]
+might involve [suggestion based on context]. Does this sound right, or would you like to take a different approach?"
 
 Format as a simple numbered list:
 1. [contextual question]
@@ -464,7 +487,8 @@ Format as a simple numbered list:
                     if question and not question.startswith("[") and not question.startswith("Format"):
                         questions.append(question)
 
-            return questions[:3] if questions else [f"What are the key aspects of {section_def['name'].lower()} for your game?"]
+            fallback = f"What are the key aspects of {section_def['name'].lower()} for your game?"
+            return questions[:3] if questions else [fallback]
 
         except (ConnectionError, TimeoutError, ValueError) as e:
             print(f"Warning: LLM error in question generation: {e}")
@@ -476,39 +500,39 @@ Format as a simple numbered list:
     def _can_generate_preview(self, section_num: int, context: str) -> bool:
         """
         Determine if we have enough context to generate a preview instead of asking questions.
-        
+
         Args:
             section_num (int): Section number
             context (str): Complete context from previous sections
-            
+
         Returns:
             bool: True if preview generation is appropriate
         """
         # Only generate previews for sections 3+ where we have substantial context
         if section_num < 3:
             return False
-            
+
         # Must have meaningful context (not just tech stack info)
         if not context or len(context.strip()) < 200:
             return False
-            
+
         # Check if context contains completed sections
         return "SECTION 1:" in context and "SECTION 2:" in context
 
     def _generate_section_preview(self, section_num: int, context: str) -> Tuple[str, List[str]]:
         """
         Generate a preview of what the section should contain based on context.
-        
+
         Args:
             section_num (int): Section number
             context (str): Complete context from previous sections
-            
+
         Returns:
             Tuple[str, List[str]]: (preview_content, follow_up_questions)
         """
         section_def = self.SECTIONS_DEFINITION[section_num]
         criteria_list = chr(10).join(f"- {criterion}" for criterion in section_def["criteria"])
-        
+
         preview_prompt = f"""You are helping create a Game Design Document for a {self.tech_stack}/{self.language} game.
 
 CURRENT SECTION: {section_def['name']}
@@ -520,7 +544,8 @@ CRITERIA TO COVER:
 COMPLETE GAME CONTEXT:
 {context}
 
-Based on the rich context from previous sections, generate a thoughtful preview of what this section should contain. Be specific and reference the established game elements.
+Based on the rich context from previous sections, generate a thoughtful preview of what this section
+should contain. Be specific and reference the established game elements.
 
 Your preview should:
 1. Draw logical conclusions from the previous sections
@@ -541,11 +566,11 @@ FOLLOW-UP QUESTIONS:
         try:
             response = self.llm.invoke(preview_prompt)
             content = self._extract_response_content(response)
-            
+
             # Parse preview and questions
             parts = content.split("FOLLOW-UP QUESTIONS:")
             preview_content = parts[0].replace("PREVIEW:", "").strip()
-            
+
             questions = []
             if len(parts) > 1:
                 question_text = parts[1].strip()
@@ -558,17 +583,19 @@ FOLLOW-UP QUESTIONS:
                             question = line.split(".", 1)[1].strip()
                         else:
                             question = line.strip()
-                        
+
                         if question and not question.startswith("["):
                             questions.append(question)
-            
+
             # Fallback questions if none were generated
             if not questions:
-                questions = [f"Does this capture your vision for {section_def['name'].lower()}?",
-                           "What would you like to adjust or add?"]
-            
+                questions = [
+                    f"Does this capture your vision for {section_def['name'].lower()}?",
+                    "What would you like to adjust or add?",
+                ]
+
             return preview_content, questions[:2]
-            
+
         except Exception as e:
             print(f"Warning: Preview generation failed: {e}")
             # Fallback to regular question generation
@@ -591,12 +618,12 @@ FOLLOW-UP QUESTIONS:
         section_def = self.SECTIONS_DEFINITION[section_num]
         all_responses = (previous_responses or []) + [user_response]
         combined_response = "\n\n".join(all_responses)
-        
+
         # Get complete context from previous sections
         full_context = self._build_context_summary()
 
         criteria_list = chr(10).join(f"- {criterion}" for criterion in section_def["criteria"])
-        
+
         evaluation_prompt = f"""You are helping evaluate if a GDD section is complete.
 
 CURRENT SECTION: {section_def['name']}
@@ -649,7 +676,7 @@ Be thorough - check both the previous context AND current responses for each cri
 
             # Determine if section is complete
             if len(missing_criteria) == 0:
-                return True, f"✅ Section completed! All criteria covered based on context and responses."
+                return True, "✅ Section completed! All criteria covered based on context and responses."
 
             # Generate feedback showing what was understood and what's missing
             feedback_parts = []
@@ -802,7 +829,7 @@ Format as a simple numbered list:
         """
         section_def = self.SECTIONS_DEFINITION[section_num]
         combined_responses = "\n\n".join(user_responses)
-        
+
         # Get complete context for proper structuring
         full_context = self._build_context_summary()
 
@@ -835,11 +862,20 @@ The output should feel like part of a unified GDD document, not a standalone sec
                 "structured_at": datetime.now().isoformat(),
             }
 
-        except Exception as e:
+        except (ConnectionError, TimeoutError) as e:
+            print(f"Warning: LLM connection error in content structuring: {e}")
             return {
                 "raw_content": combined_responses,
                 "user_responses": user_responses,
-                "error": str(e),
+                "error": f"LLM connection error: {str(e)}",
+                "structured_at": datetime.now().isoformat(),
+            }
+        except Exception as e:
+            print(f"Warning: Unexpected error in content structuring: {e}")
+            return {
+                "raw_content": combined_responses,
+                "user_responses": user_responses,
+                "error": f"Unexpected error: {str(e)}",
                 "structured_at": datetime.now().isoformat(),
             }
 
@@ -882,18 +918,24 @@ The output should feel like part of a unified GDD document, not a standalone sec
                 # Generate preview-based approach
                 preview_content, questions = self._generate_section_preview(section_num, context)
                 section.questions_asked.extend(questions)
-                
+
                 # Save session
                 self._save_session()
-                
+
                 # Format the response with preview
                 section_def = self.SECTIONS_DEFINITION[section_num]
-                message = f"📋 Started section {section_num}: {section.name}\n\n"
-                message += f"Based on your game concept so far, here's what I think this section should cover:\n\n"
-                message += f"**{section_def['name']}**\n"
-                message += preview_content
-                message += f"\n\n💭 Does this look right? The questions below will help us refine it:"
-                
+                message_parts = [
+                    f"📋 Started section {section_num}: {section.name}",
+                    "",
+                    "Based on your game concept so far, here's what I think this section should cover:",
+                    "",
+                    f"**{section_def['name']}**",
+                    preview_content,
+                    "",
+                    "💭 Does this look right? The questions below will help us refine it:",
+                ]
+                message = "\n".join(message_parts)
+
                 return True, message, questions
             else:
                 # Generate regular questions
@@ -905,8 +947,11 @@ The output should feel like part of a unified GDD document, not a standalone sec
 
                 return True, f"Started section {section_num}: {section.name}", questions
 
+        except (AttributeError, KeyError) as e:
+            return False, f"Session data error: {str(e)}", []
         except Exception as e:
-            return False, f"Error starting section: {str(e)}", []
+            print(f"Warning: Unexpected error starting section: {e}")
+            return False, "Unexpected error starting section", []
 
     def process_user_response(self, user_response: str) -> Tuple[bool, str, Optional[List[str]]]:
         """
@@ -977,8 +1022,11 @@ The output should feel like part of a unified GDD document, not a standalone sec
 
                 return True, f"📝 {reason}", follow_up_questions
 
+        except (AttributeError, KeyError) as e:
+            return False, f"Session data error: {str(e)}", None
         except Exception as e:
-            return False, f"Error processing response: {str(e)}", None
+            print(f"Warning: Unexpected error processing response: {e}")
+            return False, "Unexpected error processing response", None
 
     def _handle_section_review(self, user_input: str, section_num: int) -> Tuple[bool, str, Optional[List[str]]]:
         """
@@ -1003,8 +1051,11 @@ The output should feel like part of a unified GDD document, not a standalone sec
                 # User provided additional input - add it and re-evaluate
                 return self._handle_section_addition(user_input, section_num)
 
+        except (AttributeError, KeyError) as e:
+            return False, f"Session data error: {str(e)}", None
         except Exception as e:
-            return False, f"Error handling section review: {str(e)}", None
+            print(f"Warning: Unexpected error handling section review: {e}")
+            return False, "Unexpected error handling section review", None
 
     def _approve_section(self, section_num: int) -> Tuple[bool, str, Optional[List[str]]]:
         """
@@ -1137,7 +1188,7 @@ The output should feel like part of a unified GDD document, not a standalone sec
             return ""
 
         context_parts = []
-        
+
         # Add tech stack context
         context_parts.append(f"GAME PROJECT: {self.tech_stack}/{self.language} game")
         context_parts.append("")
@@ -1147,7 +1198,7 @@ The output should feel like part of a unified GDD document, not a standalone sec
             section = self.current_session.sections.get(num)
             if section and section.status == SectionStatus.COMPLETED:
                 context_parts.append(f"=== SECTION {num}: {section.name.upper()} ===")
-                
+
                 # Include structured content if available
                 if section.structured_content and "raw_content" in section.structured_content:
                     context_parts.append(section.structured_content["raw_content"])
@@ -1156,11 +1207,11 @@ The output should feel like part of a unified GDD document, not a standalone sec
                     context_parts.append("User responses:")
                     for response in section.user_responses:
                         context_parts.append(f"- {response}")
-                        
+
                 context_parts.append("")
 
         # If no completed sections yet, just provide tech stack info
-        if not any(context_parts):
+        if not context_parts or all(not part.strip() for part in context_parts):
             context_parts = [f"This is a {self.tech_stack}/{self.language} game project. No sections completed yet."]
 
         return "\n".join(context_parts)
@@ -1173,7 +1224,8 @@ The output should feel like part of a unified GDD document, not a standalone sec
         # Simple approach: store the complete structured content
         if "raw_content" in structured_content:
             section_name = self.SECTIONS_DEFINITION[section_num]["name"]
-            self.current_session.game_context[f"section_{section_num}_{section_name}"] = structured_content["raw_content"]
+            key = f"section_{section_num}_{section_name}"
+            self.current_session.game_context[key] = structured_content["raw_content"]
 
     def _all_sections_completed(self) -> bool:
         """Check if all sections are completed."""
@@ -1262,8 +1314,11 @@ The output should feel like part of a unified GDD document, not a standalone sec
             else:
                 return False, f"Failed to save GDD: {message}"
 
+        except (AttributeError, KeyError) as e:
+            return False, f"Session data error: {str(e)}"
         except Exception as e:
-            return False, f"Error generating final GDD: {str(e)}"
+            print(f"Warning: Unexpected error generating final GDD: {e}")
+            return False, "Unexpected error generating final GDD"
 
     def get_session_status(self) -> Union[SessionStatus, Dict[str, str]]:
         """Get current session status information."""

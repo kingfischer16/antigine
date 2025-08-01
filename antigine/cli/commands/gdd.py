@@ -138,6 +138,11 @@ class GDDCommands:
         if self.controller is None:
             return 1
         status = self.controller.get_session_status()
+        # Handle error case - status is Union[SessionStatus, Dict[str, str]]
+        if "session_id" not in status:
+            # Must be error dict
+            print_error(status["error"])
+            return 1
 
         print(f"Session ID: {status['session_id']}")
         print(f"Tech Stack: {status['tech_stack']} / {status['language']}")
@@ -364,6 +369,12 @@ class GDDCommands:
             return
 
         status = self.controller.get_session_status()
+        # Handle error case - status is Union[SessionStatus, Dict[str, str]]
+        if "session_id" not in status:
+            # Must be error dict
+            print_error(status["error"])
+            return
+
         current_info = self.controller.get_current_section_info()
 
         print()
@@ -393,6 +404,12 @@ class GDDCommands:
 
         try:
             status = self.controller.get_session_status()
+            # Handle error case - status is Union[SessionStatus, Dict[str, str]]
+            if "session_id" not in status:
+                # Must be error dict
+                print_error(status["error"])
+                return
+
             print()
             print_info("📄 Current GDD Progress:")
             print("=" * 60)
@@ -404,7 +421,9 @@ class GDDCommands:
             # Show completed sections
             for i in range(1, 9):
                 section_name = self.controller.SECTIONS_DEFINITION[i]["name"]
-                if i <= status["completed_sections"]:
+                # After session_id check, we know status is SessionStatus with int values
+                completed_sections = int(status["completed_sections"])
+                if i <= completed_sections:
                     print(f"✅ Section {i}: {section_name}")
                 elif i == status["current_section"]:
                     print(f"🔄 Section {i}: {section_name} (In Progress)")
@@ -417,7 +436,7 @@ class GDDCommands:
             print_error(f"Failed to generate preview: {e}")
 
 
-def setup_gdd_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+def setup_gdd_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:  # type: ignore[type-arg]
     """Set up the GDD command parser."""
     gdd_parser = subparsers.add_parser("gdd", help="Game Design Document creation and management")
     gdd_subparsers = gdd_parser.add_subparsers(dest="gdd_command", help="GDD commands")
@@ -438,7 +457,7 @@ def setup_gdd_parser(subparsers: argparse._SubParsersAction) -> argparse.Argumen
         "--preview", action="store_true", help="Show preview instead of generating final document"
     )
 
-    return gdd_parser
+    return gdd_parser  # type: ignore[no-any-return]
 
 
 def handle_gdd_command(args: argparse.Namespace, project_root: str) -> int:

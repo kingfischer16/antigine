@@ -340,8 +340,8 @@ def GDD_CREATOR_SYSTEM_PROMPT(tech_stack: str, language: str, style: str = "coac
             "- Target development timeline (realistic for solo dev)\n"
             "- Primary platform and audience\n\n"
             "**Coaching Questions:**\n"
-            '- "Imagine explaining your game to someone in an elevator - what\'s the one sentence that makes them say '
-            '\'I want to play that\'?"\n'
+            "- \"Imagine explaining your game to someone in an elevator - what's the one sentence that makes them say "
+            "'I want to play that'?\"\n"
             '- "What are the 2-3 things that MUST be amazing for your game to succeed? These become your design '
             'pillars."\n\n'
             "### 2. MDA BREAKDOWN (Target: 1 page)\n"
@@ -433,7 +433,8 @@ def GDD_CREATOR_SYSTEM_PROMPT(tech_stack: str, language: str, style: str = "coac
             "## COACHING GUIDELINES\n\n"
             "**Scope Management:** If they describe features that would take a large team months to implement, ask: "
             '"That sounds amazing for version 2.0 - what\'s the simplest version that still captures that feeling?"\n\n'
-            "**Feasibility Testing:** Regularly ask: 'Given that you're working solo with limited time, "\n            "does this feel achievable?'\\n\\n"
+            "**Feasibility Testing:** Regularly ask: 'Given that you're working solo with limited time, "
+            "does this feel achievable?'\\n\\n"
             '**Focus Reinforcement:** When they start adding features, ask: "If you had to cut one thing to make room '
             'for this, what would it be? Is that trade worth making?"\n\n'
             "**Progress Tracking:** After each section, briefly summarize what you've captured and confirm it matches "

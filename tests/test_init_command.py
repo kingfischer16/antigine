@@ -59,7 +59,7 @@ class TestInitHelperFunctions(unittest.TestCase):
         result = _get_tech_stack(args, "Lua")
         self.assertEqual(result, "Love2D")
 
-    @patch("antigine.cli.commands.init.prompt_for_input")
+    @patch("antigine.cli.commands.init.prompt_for_choice")
     @patch("antigine.cli.commands.init.tech_stack_manager")
     def test_get_tech_stack_interactive(self, mock_manager, mock_prompt):
         """Test that _get_tech_stack prompts when tech stack not in args."""
@@ -75,25 +75,10 @@ class TestInitHelperFunctions(unittest.TestCase):
 
         self.assertEqual(result, "Love2D")
         mock_manager.get_available_libraries.assert_called_once_with("Lua")
-        mock_prompt.assert_called_once_with("Enter tech stack for Lua", default=None)
-
-    @patch("antigine.cli.commands.init.print_error")
-    @patch("antigine.cli.commands.init.prompt_for_input")
-    @patch("antigine.cli.commands.init.tech_stack_manager")
-    def test_get_tech_stack_empty_input_raises_error(self, mock_manager, mock_prompt, mock_print_error):
-        """Test that _get_tech_stack raises error when user provides empty input."""
-        mock_manager.get_available_libraries.return_value = {}
-        mock_prompt.return_value = ""  # Empty input
-        args = Namespace()
-
-        with self.assertRaises(ValueError) as context:
-            _get_tech_stack(args, "Python")
-
-        self.assertIn("Tech stack input is required", str(context.exception))
-        mock_print_error.assert_called_once_with("Tech stack is required. Please specify at least one library.")
+        mock_prompt.assert_called_once_with("Select tech stack for Lua", choices=["Love2D", "Pygame"], default=None)
 
     @patch("antigine.cli.commands.init.print_info")
-    @patch("antigine.cli.commands.init.prompt_for_input")
+    @patch("antigine.cli.commands.init.prompt_for_choice")
     @patch("antigine.cli.commands.init.tech_stack_manager")
     def test_get_tech_stack_displays_available_libraries(self, mock_manager, mock_prompt, mock_print):
         """Test that _get_tech_stack displays available libraries with descriptions."""

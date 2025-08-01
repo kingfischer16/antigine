@@ -8,6 +8,7 @@ CLI command handler for configuration management. Delegates to core configuratio
 import os
 import json
 from argparse import Namespace
+from typing import Dict, Any
 
 from ..utils.output import print_success, print_error, print_info, print_header
 from ..utils.validation import detect_project_directory
@@ -61,7 +62,7 @@ def handle_config(args: Namespace) -> int:
         return 1
 
 
-def handle_config_list(config: dict) -> int:
+def handle_config_list(config: Dict[str, Any]) -> int:
     """
     Display all configuration values.
 
@@ -85,7 +86,7 @@ def handle_config_list(config: dict) -> int:
     return 0
 
 
-def handle_config_get(config: dict, key: str) -> int:
+def handle_config_get(config: Dict[str, Any], key: str) -> int:
     """
     Get a specific configuration value.
 
@@ -109,7 +110,7 @@ def handle_config_get(config: dict, key: str) -> int:
         return 1
 
 
-def handle_config_set(config_path: str, config: dict, key: str, value: str) -> int:
+def handle_config_set(config_path: str, config: Dict[str, Any], key: str, value: str) -> int:
     """
     Set a configuration value.
 

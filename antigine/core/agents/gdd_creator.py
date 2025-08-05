@@ -468,6 +468,10 @@ Format as a simple numbered list:
 3. [contextual question if needed]"""
 
         try:
+            # Handle case where LLM is not available (e.g., in testing environments)
+            if self.llm is None:
+                raise ValueError("LLM not available")
+
             response = self.llm.invoke(prompt)
             content = self._extract_response_content(response)
 
@@ -564,6 +568,10 @@ FOLLOW-UP QUESTIONS:
 2. [Optional second question]"""
 
         try:
+            # Handle case where LLM is not available (e.g., in testing environments)
+            if self.llm is None:
+                raise ValueError("LLM not available")
+
             response = self.llm.invoke(preview_prompt)
             content = self._extract_response_content(response)
 
@@ -653,6 +661,10 @@ CRITERION 4: [extracted content from context+responses or MISSING]
 Be thorough - check both the previous context AND current responses for each criterion."""
 
         try:
+            # Handle case where LLM is not available (e.g., in testing environments)
+            if self.llm is None:
+                raise ValueError("LLM not available")
+
             evaluation_response = self.llm.invoke(evaluation_prompt)
             evaluation_content = self._extract_response_content(evaluation_response)
 
@@ -779,6 +791,10 @@ Format as a simple numbered list:
 2. [question]"""
 
         try:
+            # Handle case where LLM is not available (e.g., in testing environments)
+            if self.llm is None:
+                raise ValueError("LLM not available")
+
             response = self.llm.invoke(prompt)
             content = self._extract_response_content(response)
 
@@ -853,6 +869,10 @@ Structure the user responses into clean, professional GDD content. Make sure to:
 The output should feel like part of a unified GDD document, not a standalone section."""
 
         try:
+            # Handle case where LLM is not available (e.g., in testing environments)
+            if self.llm is None:
+                raise ValueError("LLM not available")
+
             response = self.llm.invoke(prompt)
             content = self._extract_response_content(response)
 

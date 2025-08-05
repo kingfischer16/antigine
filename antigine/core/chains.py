@@ -9,7 +9,7 @@ Chains will be implemented here as the multi-agent system is developed.
 """
 
 # Import models and prompts when chains are implemented
-# from .models import chat_model
+# from .models import lite_model, standard_model, pro_model
 # from .prompts import [prompt_functions]
 
 # Chains

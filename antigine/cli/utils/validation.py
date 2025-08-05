@@ -25,6 +25,28 @@ def detect_project_directory(path: str) -> bool:
     return os.path.isdir(antigine_folder)
 
 
+def get_project_root() -> Optional[str]:
+    """
+    Find the root directory of the current Antigine project by searching upward.
+
+    Returns:
+        Optional[str]: Path to project root if found, None otherwise
+    """
+    current_path = os.getcwd()
+
+    # Check current directory and parent directories
+    while current_path != os.path.dirname(current_path):  # Stop at filesystem root
+        if detect_project_directory(current_path):
+            return current_path
+        current_path = os.path.dirname(current_path)
+
+    # Check the root directory itself
+    if detect_project_directory(current_path):
+        return current_path
+
+    return None
+
+
 def validate_project_name(name: str) -> bool:
     """
     Validate project name format.

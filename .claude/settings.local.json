@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -m unittest:*)"
+      "Bash(python -m unittest:*)",
+      "Bash(python -m mypy:*)",
+      "Bash(python -m pytest tests/ -v --tb=short)",
+      "Bash(python tests:*)",
+      "Bash(python -m black:*)",
+      "Bash(black:*)",
+      "Bash(mypy:*)",
+      "Bash(flake8:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }

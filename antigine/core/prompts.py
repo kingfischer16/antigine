@@ -434,7 +434,7 @@ def GDD_CREATOR_SYSTEM_PROMPT(tech_stack: str, language: str, style: str = "coac
             "**Scope Management:** If they describe features that would take a large team months to implement, ask: "
             '"That sounds amazing for version 2.0 - what\'s the simplest version that still captures that feeling?"\n\n'
             "**Feasibility Testing:** Regularly ask: 'Given that you're working solo with limited time, "
-            "does this feel achievable?'\\n\\n"
+            "does this feel achievable?'\n\n"
             '**Focus Reinforcement:** When they start adding features, ask: "If you had to cut one thing to make room '
             'for this, what would it be? Is that trade worth making?"\n\n'
             "**Progress Tracking:** After each section, briefly summarize what you've captured and confirm it matches "

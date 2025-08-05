@@ -126,7 +126,7 @@ class TestGDDController(unittest.TestCase):
         """Test that question generation method exists and returns list."""
         # Since we're in CI/testing mode, lite_model is None, so we test the fallback behavior
         questions = self.controller._generate_questions(1, "Test context")
-        
+
         # Should return at least one fallback question
         self.assertIsInstance(questions, list)
         self.assertGreater(len(questions), 0)
@@ -223,7 +223,7 @@ class TestGDDController(unittest.TestCase):
             self.assertIsInstance(feedback, str)
             self.assertTrue(len(feedback) > 0)
             # The exact text may vary, just check we got some feedback
-            
+
             # Check that section status was updated appropriately
             section = self.controller.current_session.sections[1]
             # Status should be pending review or completed
@@ -374,7 +374,7 @@ class TestGDDController(unittest.TestCase):
         # In CI environment, this may not fully succeed due to missing dependencies
         # but we can test that it handles the case appropriately
         success, message = self.controller.generate_final_gdd()
-        
+
         # Should return a boolean and string regardless of success/failure
         self.assertIsInstance(success, bool)
         self.assertIsInstance(message, str)
@@ -394,7 +394,7 @@ class TestGDDController(unittest.TestCase):
         # Create new controller and load session
         with patch("antigine.core.agents.gdd_creator.lite_model"):
             new_controller = GDDController(str(self.project_root))
-            success, message = new_controller.load_existing_session()
+            success, _ = new_controller.load_existing_session()
 
         self.assertTrue(success)
         self.assertEqual(new_controller.current_session.session_id, original_session_id)
@@ -420,7 +420,7 @@ class TestGDDController(unittest.TestCase):
         self.controller.create_new_session()
 
         # Mock the private method to simulate failure, then test actual behavior
-        with patch.object(self.controller, "_generate_questions", side_effect=Exception("LLM API error")) as mock_gen_q:
+        with patch.object(self.controller, "_generate_questions", side_effect=Exception("LLM API error")):
             # When LLM fails, the controller should handle it gracefully
             # Test that the method handles the exception properly by calling it in a safe context
             try:

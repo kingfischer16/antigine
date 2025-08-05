@@ -676,21 +676,21 @@ Be thorough - check both the previous context AND current responses for each cri
 
             # Determine if section is complete
             if len(missing_criteria) == 0:
-                return True, "✅ Section completed! All criteria covered based on context and responses."
+                return True, "Section completed! All criteria covered based on context and responses."
 
             # Generate feedback showing what was understood and what's missing
             feedback_parts = []
 
             if extracted_criteria:
-                feedback_parts.append("📝 Here's what I understand so far (from context + your responses):")
+                feedback_parts.append("Here's what I understand so far (from context + your responses):")
                 for criterion, content in extracted_criteria.items():
-                    feedback_parts.append(f"• **{criterion}**: {content}")
+                    feedback_parts.append(f"- **{criterion}**: {content}")
                 feedback_parts.append("")
 
             if missing_criteria:
-                feedback_parts.append("❓ I still need information about:")
+                feedback_parts.append("I still need information about:")
                 for criterion in missing_criteria:
-                    feedback_parts.append(f"• {criterion}")
+                    feedback_parts.append(f"- {criterion}")
 
             return False, "\n".join(feedback_parts)
 
@@ -725,7 +725,7 @@ Be thorough - check both the previous context AND current responses for each cri
             if "I still need information about:" in line:
                 in_missing_section = True
                 continue
-            elif in_missing_section and line.startswith("•"):
+            elif in_missing_section and line.startswith("-"):
                 # Extract the criterion from the bullet point
                 criterion_text = line[1:].strip()  # Remove bullet point
                 # Match against actual criteria
@@ -925,14 +925,14 @@ The output should feel like part of a unified GDD document, not a standalone sec
                 # Format the response with preview
                 section_def = self.SECTIONS_DEFINITION[section_num]
                 message_parts = [
-                    f"📋 Started section {section_num}: {section.name}",
+                    f"Started section {section_num}: {section.name}",
                     "",
                     "Based on your game concept so far, here's what I think this section should cover:",
                     "",
                     f"**{section_def['name']}**",
                     preview_content,
                     "",
-                    "💭 Does this look right? The questions below will help us refine it:",
+                    "Does this look right? The questions below will help us refine it:",
                 ]
                 message = "\n".join(message_parts)
 
@@ -995,15 +995,14 @@ The output should feel like part of a unified GDD document, not a standalone sec
                 # Return structured content for review
                 section_def = self.SECTIONS_DEFINITION[current_section_num]
                 review_message = (
-                    f"📋 Great! I've organized your input for Section {current_section_num}: "
-                    f"{section_def['name']}\n\n"
+                    f"Great! I've organized your input for Section {current_section_num}: " f"{section_def['name']}\n\n"
                 )
                 review_message += f"**{section_def['name']}**\n"
                 review_message += structured_content.get("raw_content", "")
-                review_message += "\n\n💭 Does this capture what you intended? You can:\n"
-                review_message += "• Type 'approve' to finalize this section and continue\n"
-                review_message += "• Type 'revise' to make changes\n"
-                review_message += "• Add any additional thoughts or corrections"
+                review_message += "\n\nDoes this capture what you intended? You can:\n"
+                review_message += "- Type 'approve' to finalize this section and continue\n"
+                review_message += "- Type 'revise' to make changes\n"
+                review_message += "- Add any additional thoughts or corrections"
 
                 return True, review_message, None
             else:
@@ -1020,7 +1019,7 @@ The output should feel like part of a unified GDD document, not a standalone sec
                 # Save session
                 self._save_session()
 
-                return True, f"📝 {reason}", follow_up_questions
+                return True, reason, follow_up_questions
 
         except (AttributeError, KeyError) as e:
             return False, f"Session data error: {str(e)}", None
@@ -1087,9 +1086,9 @@ The output should feel like part of a unified GDD document, not a standalone sec
             self.current_session.is_completed = True
             self.current_session.completion_time = datetime.now().isoformat()
             self._save_session()
-            return True, f"✅ Section {section_num} approved! GDD creation is now complete.", None
+            return True, f"Section {section_num} approved! GDD creation is now complete.", None
         else:
-            return True, f"✅ Section {section_num} approved and saved!", None
+            return True, f"Section {section_num} approved and saved!", None
 
     def _request_section_revision(self, section_num: int) -> Tuple[bool, str, Optional[List[str]]]:
         """
@@ -1114,11 +1113,11 @@ The output should feel like part of a unified GDD document, not a standalone sec
         self._save_session()
 
         # Ask what they'd like to change
-        revision_message = f"📝 Let's revise Section {section_num}. What would you like to change or add?\n\n"
+        revision_message = f"Let's revise Section {section_num}. What would you like to change or add?\n\n"
         revision_message += "You can:\n"
-        revision_message += "• Tell me what specific aspects need adjustment\n"
-        revision_message += "• Provide additional information\n"
-        revision_message += "• Completely rewrite any part"
+        revision_message += "- Tell me what specific aspects need adjustment\n"
+        revision_message += "- Provide additional information\n"
+        revision_message += "- Completely rewrite any part"
 
         return True, revision_message, None
 
@@ -1159,14 +1158,14 @@ The output should feel like part of a unified GDD document, not a standalone sec
             # Return updated content for review
             section_def = self.SECTIONS_DEFINITION[section_num]
             review_message = (
-                f"📋 I've updated Section {section_num}: {section_def['name']} " f"with your additional input:\n\n"
+                f"I've updated Section {section_num}: {section_def['name']} " f"with your additional input:\n\n"
             )
             review_message += f"**{section_def['name']}**\n"
             review_message += structured_content.get("raw_content", "")
-            review_message += "\n\n💭 Does this look better? You can:\n"
-            review_message += "• Type 'approve' to finalize this section\n"
-            review_message += "• Type 'revise' to make more changes\n"
-            review_message += "• Add more thoughts or corrections"
+            review_message += "\n\nDoes this look better? You can:\n"
+            review_message += "- Type 'approve' to finalize this section\n"
+            review_message += "- Type 'revise' to make more changes\n"
+            review_message += "- Add more thoughts or corrections"
 
             return True, review_message, None
         else:
@@ -1180,7 +1179,7 @@ The output should feel like part of a unified GDD document, not a standalone sec
             # Save session
             self._save_session()
 
-            return True, f"📝 Thanks for the additional input! {reason}", follow_up_questions
+            return True, f"Thanks for the additional input! {reason}", follow_up_questions
 
     def _build_context_summary(self) -> str:
         """Build complete context from all completed sections and user responses."""

@@ -436,7 +436,7 @@ class GDDCommands:
             print_error(f"Failed to generate preview: {e}")
 
 
-def setup_gdd_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:  # type: ignore[type-arg]
+def setup_gdd_parser(subparsers: Any) -> argparse.ArgumentParser:
     """Set up the GDD command parser."""
     gdd_parser = subparsers.add_parser("gdd", help="Game Design Document creation and management")
     gdd_subparsers = gdd_parser.add_subparsers(dest="gdd_command", help="GDD commands")

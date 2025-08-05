@@ -3,8 +3,8 @@
 ## Overview
 This document outlines the development plan for building the complete Antigine multi-agent game development system. The roadmap is organized into phases that build upon each other, with clear dependencies and deliverables.
 
-**Current Status**: GDD Creator Agent Complete ✅ + PR Merged to Master ✅ + Architecture Review Pending ⏳  
-**Next Focus**: GDD Creator Architecture Review & Refactoring + Module Planner Agent Implementation  
+**Current Status**: GDD Creator Agent Complete ✅ + PR Merged to Master ✅ + Architecture Simplified ✅  
+**Next Focus**: Feature Implementation Workflow (5-Agent Pipeline) Development  
 
 ---
 
@@ -142,41 +142,44 @@ This document outlines the development plan for building the complete Antigine m
 ---
 
 ## Phase 3: Core Agent Development 🔄 IN PROGRESS
-**Goal**: Implement the 9 core AI agents with tech stack-aware capabilities
+**Goal**: Implement the core AI workflows with tech stack-aware capabilities
 
-**Current Priority**: Module Planner Agent (GDD Creator complete and tested)
+**Current Priority**: Feature Implementation Workflow (5-Agent Pipeline)
 
-### 📦 Planning Phase Agents
+### 📦 Simplified Architecture Overview
+
+Antigine now uses a **2-workflow architecture** optimized for indie game development:
+
+1. **GDD Creator Workflow**: Strategic vision creation (standalone)
+2. **Feature Implementation Workflow**: Direct feature-to-code pipeline (references GDD if available)
+
+This eliminates unnecessary complexity while maintaining strategic coherence and supporting both rapid prototyping and full game development.
+
+### 📦 GDD Creator Workflow ✅ **COMPLETE**
 
 #### **GDD Creator Agent** (`core/agents/gdd_creator.py`) ✅ **COMPLETE & TESTED**
 - [x] Interactive questioning system for game design (atomic Flash Lite architecture)
 - [x] Context-aware questioning system (conversational rather than generic questions)
 - [x] Tech stack-aware questions (2D vs 3D capabilities, language-specific considerations)
 - [x] GDD template integration with 8-section focused workflow
-- [x] Export to markdown format for human review via GDDManager
+- [x] Export to markdown format as `docs/gdd.md` in game project
 - [x] Session persistence and resumable interactive sessions
 - [x] Comprehensive CLI integration with `antigine gdd` commands
 - [x] Type-safe implementation with comprehensive error handling
 - [x] Integration with existing project infrastructure (database, managers)
 - [x] **Manual testing completed - all functionality verified working**
+- [x] **Architecture finalized - no LangGraph conversion needed for simple conversation workflow**
 
-#### **Module Planner Agent** (`core/agents/module_planner.py`)
-- [ ] GDD analysis and architectural decomposition
-- [ ] Tech stack-specific module suggestions
-- [ ] Dependency identification between modules
-- [ ] Integration with existing codebase analysis
-- [ ] Support for module evolution based on gameplay discoveries
-- [ ] Ability to deprecate/replace modules that don't serve fun gameplay
+### 📦 Feature Implementation Workflow (5-Agent Pipeline)
 
-#### **Feature Request Writer Agent** (`core/agents/feature_writer.py`)
-- [ ] Module-to-feature breakdown logic
-- [ ] Codebase context integration
-- [ ] Acceptance criteria generation
-- [ ] Feature scope and complexity estimation
-- [ ] Support for creating features that deviate from original modules
-- [ ] Ability to generate features based on playtesting insights rather than just GDD
+**Purpose**: Direct feature request to working code pipeline with optional GDD context
 
-### 📦 Implementation Phase Agents
+**Key Design Principles:**
+- **GDD Integration**: Always references `docs/gdd.md` when present for strategic alignment
+- **Graceful Degradation**: Works without GDD for rapid prototyping (like Ludo.ai)
+- **Codebase Awareness**: Analyzes existing code and feature database for context
+- **Human Oversight**: Mandatory approval gates between major stages
+- **LangGraph Orchestration**: Complex conditional workflow with review loops
 
 #### **Technical Architecture Writer** (`core/agents/tech_architect.py`)
 - [ ] Tech stack-specific architecture patterns
@@ -202,7 +205,7 @@ This document outlines the development plan for building the complete Antigine m
 - [ ] Resource requirement assessment
 - [ ] Quality gate establishment
 
-### 📦 Execution Phase Agents
+### 📦 Implementation Pipeline Agents
 
 #### **Code Writer Agent** (`core/agents/code_writer.py`)
 - [ ] Tech stack-specific code generation
@@ -218,7 +221,8 @@ This document outlines the development plan for building the complete Antigine m
 
 ### 🔗 Dependencies
 - Requires: Phase 2B (Tech Stack Database System) complete ✅
-- Enables: Phase 4 (Orchestration System)
+- Requires: GDD Creator Workflow complete ✅
+- Enables: Phase 4 (Feature Implementation Orchestration)
 
 ### 📋 Development Readiness
 **Phase 2B Foundation Complete:**
@@ -228,38 +232,42 @@ This document outlines the development plan for building the complete Antigine m
 - ✅ Project scaffolding system for agent-generated project structures
 - ✅ Code quality standards established (120-char line length, black formatting)
 
-**Ready for Agent Development:**
-- Git branch prepared for GDD Creator agent work
+**GDD Creator Complete:**
+- ✅ Strategic vision creation workflow fully functional
+- ✅ GDD export to `docs/gdd.md` standardized
+- ✅ Architecture decision: Simple procedural implementation appropriate for conversation workflow
+
+**Ready for Feature Pipeline Development:**
 - LangChain/LangGraph infrastructure (models.py, prompts.py) in place
 - Database schema supports feature tracking through agent workflows
 - Tech stack awareness built into all core systems
+- GDD context integration points identified
 
 ### 🎯 Success Criteria
-- [ ] All 9 agents implemented with tech stack awareness
-- [ ] Agents utilize stored documentation URLs effectively
-- [ ] Feature lifecycle trackable through all stages
+- [ ] Feature Implementation Workflow (5 agents) implemented with LangGraph orchestration
+- [ ] Agents utilize stored documentation URLs and GDD context effectively
+- [ ] Feature lifecycle trackable through all stages with human approval gates
 - [ ] Tech stack-specific outputs generated correctly
-- [ ] Agents support iterative evolution of GDD/modules based on gameplay feedback
-- [ ] System encourages "follow the fun" development approach
+- [ ] System works both with and without GDD for maximum flexibility
+- [ ] Complex conditional workflows with review loops and retry logic
 
 ---
 
-## Phase 4: Orchestration System 🔄 PLANNED
-**Goal**: Build LangGraph orchestrators for agent coordination and workflow management
+## Phase 4: Feature Implementation Orchestration 🔄 PLANNED
+**Goal**: Build LangGraph orchestrator for the 5-agent feature implementation pipeline
 
-### 📦 Core Orchestrators
+### 📦 Core Orchestrator
 
-#### **Planning Phase Orchestrator** (`core/orchestrators/planning.py`)
-- [ ] Sequential GDD → Modules → Features workflow
-- [ ] Human approval checkpoints with clear feedback mechanisms
-- [ ] State persistence and recovery capabilities
-- [ ] Progress tracking and status reporting
-
-#### **Implementation Phase Orchestrator** (`core/orchestrators/implementation.py`)
-- [ ] 5-stage implementation pipeline management
-- [ ] Review loops with configurable iteration limits
+#### **Feature Implementation Orchestrator** (`core/orchestrators/feature_implementation.py`)
+- [ ] 5-stage implementation pipeline management (Tech Architect → Reviewer → Implementation Planner → Reviewer → Coder → Code Reviewer)
+- [ ] GDD context integration (reads `docs/gdd.md` when present)
+- [ ] Codebase and feature database context integration
+- [ ] Review loops with configurable iteration limits (max 3 per agent pair)
+- [ ] Human approval checkpoints between major stages
 - [ ] Build integration and automated error feedback
 - [ ] Rollback and retry mechanisms
+- [ ] State persistence and recovery capabilities
+- [ ] Progress tracking and status reporting
 
 ### 📦 Supporting Infrastructure
 
@@ -276,37 +284,36 @@ This document outlines the development plan for building the complete Antigine m
 - [ ] State consistency maintenance
 
 ### 🔗 Dependencies
-- Requires: Phase 3 (Core Agent Development) complete
-- Enables: Phase 5 (CLI Interface)
+- Requires: Phase 3 (Feature Implementation Agents) complete
+- Enables: Phase 5 (Enhanced CLI Interface)
 
 ---
 
-## Phase 5: CLI Interface 🔄 PLANNED
-**Goal**: Create comprehensive user-facing command-line interface
+## Phase 5: Enhanced CLI Interface 🔄 PLANNED
+**Goal**: Complete the user-facing command-line interface for the simplified architecture
 
 ### 📦 Core Commands
 
-#### **Project Management**
+#### **Project Management** ✅ **COMPLETE**
 ```bash
 antigine init                    # Initialize project in current directory
 antigine status                  # Show project and feature status
 antigine config                  # View/edit project configuration
 ```
 
-#### **GDD and Planning**
+#### **GDD Workflow** ✅ **COMPLETE**
 ```bash
 antigine gdd create             # Interactive GDD creation
 antigine gdd edit               # Modify existing GDD
-antigine modules generate       # Create modules from GDD
-antigine modules list           # Show current modules
+antigine gdd status             # Show GDD creation progress
 ```
 
-#### **Feature Management**
+#### **Feature Implementation Workflow** 🔄 **IN DEVELOPMENT**
 ```bash
-antigine feature create         # Interactive feature request creation
-antigine feature list [status]  # List features with optional filtering
-antigine feature show <id>      # Display detailed feature information
-antigine implement <id>         # Run implementation pipeline for feature
+antigine feature implement "add player dash ability"  # Direct feature implementation
+antigine feature list [status]                        # List features with optional filtering
+antigine feature show <id>                            # Display detailed feature information
+antigine feature status                               # Show current implementation progress
 ```
 
 #### **Development Workflow**
@@ -331,7 +338,7 @@ antigine validate <id>          # Validate implemented feature
 - [ ] Build and test result display
 
 ### 🔗 Dependencies
-- Requires: Phase 4 (Orchestration System) complete
+- Requires: Phase 4 (Feature Implementation Orchestration) complete
 - Enables: Phase 6 (Integration & Testing)
 
 ---
@@ -369,12 +376,13 @@ antigine validate <id>          # Validate implemented feature
 - [ ] Contributing guidelines
 
 ### 🎯 Success Criteria
-- [ ] Can successfully create and implement game features end-to-end
+- [ ] Can successfully create GDDs and implement game features end-to-end
 - [ ] Supports multiple tech stacks with high reliability
+- [ ] Feature implementation works both with and without GDD context
 - [ ] Comprehensive error handling covers edge cases
 - [ ] Documentation enables new users to be productive quickly
-- [ ] Users understand the balance between structured planning and iterative "follow the fun" development
-- [ ] Clear examples of evolving GDD/modules based on playtesting feedback
+- [ ] System supports both rapid prototyping and strategic game development
+- [ ] Clear examples of GDD-guided vs. rapid prototyping workflows
 
 ---
 
@@ -391,12 +399,18 @@ antigine validate <id>          # Validate implemented feature
 - Advanced dependency management
 - Automated testing generation
 - Performance optimization suggestions
+- GDD evolution tracking (optional user-driven updates)
 
 ### Collaboration Features
 - Multi-developer project support
 - Code review integration
 - Shared feature libraries
 - Team workflow optimization
+
+### Ludo.ai-Inspired Enhancements
+- Natural language feature descriptions with automatic tech spec generation
+- Iterative feature refinement through conversational feedback
+- Automatic playtesting integration and feedback loops
 
 ---
 

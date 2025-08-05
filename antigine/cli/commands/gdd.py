@@ -43,7 +43,7 @@ class GDDCommands:
         """
         force_new = getattr(args, "force", False)
 
-        print_info("🎮 Starting GDD creation with atomic Flash Lite approach...")
+        print_info("Starting GDD creation with atomic Flash Lite approach...")
 
         if not self._initialize_controller():
             return 1
@@ -52,7 +52,7 @@ class GDDCommands:
         if not force_new and self.controller is not None:
             success, message = self.controller.load_existing_session()
             if success:
-                print_info(f"📄 Resuming existing session: {message}")
+                print_info(f"Resuming existing session: {message}")
                 return self._continue_interactive_session()
 
         # Start new session
@@ -63,7 +63,7 @@ class GDDCommands:
             print_error(f"Failed to start GDD creation: {message}")
             return 1
 
-        print_success(f"✨ {message}")
+        print_success(message)
 
         # Show initial instructions
         self._show_session_instructions()
@@ -76,7 +76,7 @@ class GDDCommands:
             print_error(f"Failed to start first section: {start_message}")
             return 1
 
-        print_info(f"📝 {start_message}")
+        print_info(start_message)
         self._show_questions(questions)
 
         # Start interactive session
@@ -102,7 +102,7 @@ class GDDCommands:
             print_error(f"Failed to resume session: {message}")
             return 1
 
-        print_success(f"📄 {message}")
+        print_success(message)
 
         # Show current progress
         self._show_progress_summary()
@@ -131,7 +131,7 @@ class GDDCommands:
             print_info("No active GDD creation session found.")
             return 0
 
-        print_info("📊 GDD Creation Status:")
+        print_info("GDD Creation Status:")
         print()
 
         # Show progress summary
@@ -197,7 +197,7 @@ class GDDCommands:
                     return 1
                 success, result_message = self.controller.generate_final_gdd()
                 if success:
-                    print_success(f"📁 {result_message}")
+                    print_success(result_message)
                 else:
                     print_error(f"Export failed: {result_message}")
                     return 1
@@ -215,21 +215,21 @@ class GDDCommands:
             return 1
 
         print()
-        print_info("💬 Interactive GDD Creation Mode")
+        print_info("Interactive GDD Creation Mode")
         print_info("Type 'help' for commands, 'quit' to exit, 'status' for progress")
         print()
 
         while True:
             try:
                 # Get user input
-                user_input = input("👤 You: ").strip()
+                user_input = input("You: ").strip()
 
                 if not user_input:
                     continue
 
                 # Handle special commands
                 if user_input.lower() in ["quit", "exit", "q"]:
-                    print_info("👋 Ending GDD creation session. Progress has been saved.")
+                    print_info("Ending GDD creation session. Progress has been saved.")
                     break
                 elif user_input.lower() == "help":
                     self._show_help()
@@ -249,7 +249,7 @@ class GDDCommands:
                         section_num = int(user_input.split()[1])
                         success, start_message, questions = self.controller.start_section(section_num)
                         if success:
-                            print_info(f"📝 {start_message}")
+                            print_info(start_message)
                             self._show_questions(questions)
                         else:
                             print_error(start_message)
@@ -261,12 +261,12 @@ class GDDCommands:
                 success, feedback, next_questions = self.controller.process_user_response(user_input)
 
                 if not success:
-                    print_error(f"❌ Error: {feedback}")
+                    print_error(f"Error: {feedback}")
                     continue
 
                 # Show feedback
                 print()
-                print("🤖 Coach:", feedback)
+                print("Coach:", feedback)
 
                 # If section is approved and GDD is done
                 if next_questions is None and "GDD creation is now complete" in feedback:
@@ -289,7 +289,7 @@ class GDDCommands:
                     print()
                     next_preview = self.controller.get_next_section_preview()
                     if next_preview:
-                        print_info(f"🎯 Next: Section {next_preview['section_number']}. {next_preview['name']}")
+                        print_info(f"Next: Section {next_preview['section_number']}. {next_preview['name']}")
                         print_info(f"   {next_preview['description']}")
                         print()
                         continue_response = input("Continue to next section? (y/n): ").strip().lower()
@@ -297,7 +297,7 @@ class GDDCommands:
                             next_section_num = next_preview["section_number"]
                             success, start_message, questions = self.controller.start_section(next_section_num)
                             if success:
-                                print_info(f"📝 {start_message}")
+                                print_info(start_message)
                                 self._show_questions(questions)
                             else:
                                 print_error(start_message)
@@ -311,7 +311,7 @@ class GDDCommands:
 
             except KeyboardInterrupt:
                 print()
-                print_info("👋 Session interrupted. Progress has been saved.")
+                print_info("Session interrupted. Progress has been saved.")
                 break
             except Exception as e:
                 print_error(f"Unexpected error: {e}")
@@ -324,7 +324,7 @@ class GDDCommands:
         if not questions:
             return
 
-        print_info("📋 Questions to help you develop this section:")
+        print_info("Questions to help you develop this section:")
         for i, question in enumerate(questions, 1):
             print(f"   {i}. {question}")
         print()
@@ -332,35 +332,35 @@ class GDDCommands:
     def _show_session_instructions(self) -> None:
         """Show instructions for the interactive session."""
         print()
-        print_info("📋 GDD Creation Instructions:")
-        print("• Answer the coach's questions to build your Game Design Document")
-        print("• When a section is complete, you'll review the organized content")
-        print("• Type 'approve' to accept a section, 'revise' to make changes")
-        print("• Type 'help' to see available commands")
-        print("• Type 'status' to check your progress")
-        print("• Type 'next' to see what's coming up")
-        print("• Type 'preview' to see your current GDD")
-        print("• Type 'section <number>' to jump to a specific section")
-        print("• Type 'quit' to exit and save progress")
+        print_info("GDD Creation Instructions:")
+        print("- Answer the coach's questions to build your Game Design Document")
+        print("- When a section is complete, you'll review the organized content")
+        print("- Type 'approve' to accept a section, 'revise' to make changes")
+        print("- Type 'help' to see available commands")
+        print("- Type 'status' to check your progress")
+        print("- Type 'next' to see what's coming up")
+        print("- Type 'preview' to see your current GDD")
+        print("- Type 'section <number>' to jump to a specific section")
+        print("- Type 'quit' to exit and save progress")
         print()
 
     def _show_help(self) -> None:
         """Show help information for interactive commands."""
         print()
-        print_info("📖 Available Commands:")
-        print("• help          - Show this help message")
-        print("• status        - Show current progress and section status")
-        print("• next          - Preview the next section")
-        print("• preview       - Show current GDD document preview")
-        print("• section <num> - Jump to a specific section (e.g., 'section 3')")
-        print("• quit          - Exit and save progress")
+        print_info("Available Commands:")
+        print("- help          - Show this help message")
+        print("- status        - Show current progress and section status")
+        print("- next          - Preview the next section")
+        print("- preview       - Show current GDD document preview")
+        print("- section <num> - Jump to a specific section (e.g., 'section 3')")
+        print("- quit          - Exit and save progress")
         print()
-        print_info("💡 Tips:")
-        print("• Be specific and detailed in your responses")
-        print("• When a section is ready for review, you'll see the organized content")
-        print("• Type 'approve' to accept a section, 'revise' to make changes")
-        print("• You can always add more details during the review phase")
-        print("• You can return to previous sections if needed")
+        print_info("Tips:")
+        print("- Be specific and detailed in your responses")
+        print("- When a section is ready for review, you'll see the organized content")
+        print("- Type 'approve' to accept a section, 'revise' to make changes")
+        print("- You can always add more details during the review phase")
+        print("- You can return to previous sections if needed")
         print()
 
     def _show_progress_summary(self) -> None:
@@ -378,7 +378,7 @@ class GDDCommands:
         current_info = self.controller.get_current_section_info()
 
         print()
-        print_info("📊 Progress Summary:")
+        print_info("Progress Summary:")
         print(f"Current Section: {current_info.get('name', 'Unknown')} ({status['current_section']}/8)")
         print(f"Completed: {status['completed_sections']} sections ({status['completion_percentage']:.1f}%)")
         print()
@@ -391,11 +391,11 @@ class GDDCommands:
         next_preview = self.controller.get_next_section_preview()
         if next_preview:
             print()
-            print_info(f"🎯 Next Section: {next_preview['section_number']}. {next_preview['name']}")
+            print_info(f"Next Section: {next_preview['section_number']}. {next_preview['name']}")
             print(f"   {next_preview['description']}")
             print()
         else:
-            print_info("🎉 You're on the final section!")
+            print_info("You're on the final section!")
 
     def _show_gdd_preview(self) -> None:
         """Show a preview of the current GDD."""
@@ -411,7 +411,7 @@ class GDDCommands:
                 return
 
             print()
-            print_info("📄 Current GDD Progress:")
+            print_info("Current GDD Progress:")
             print("=" * 60)
             print(f"Project: {status['tech_stack']}/{status['language']} Game")
             print(f"Progress: {status['completed_sections']}/{status['total_sections']} sections")
@@ -424,11 +424,11 @@ class GDDCommands:
                 # After session_id check, we know status is SessionStatus with int values
                 completed_sections = int(status["completed_sections"])
                 if i <= completed_sections:
-                    print(f"✅ Section {i}: {section_name}")
+                    print(f"[DONE] Section {i}: {section_name}")
                 elif i == status["current_section"]:
-                    print(f"🔄 Section {i}: {section_name} (In Progress)")
+                    print(f"Section {i}: {section_name} (In Progress)")
                 else:
-                    print(f"⏳ Section {i}: {section_name}")
+                    print(f"[TODO] Section {i}: {section_name}")
 
             print("=" * 60)
             print()

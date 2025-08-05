@@ -262,7 +262,7 @@ This eliminates unnecessary complexity while maintaining strategic coherence and
 - [ ] 5-stage implementation pipeline management (Tech Architect → Reviewer → Implementation Planner → Reviewer → Coder → Code Reviewer)
 - [ ] GDD context integration (reads `docs/gdd.md` when present)
 - [ ] Codebase and feature database context integration
-- [ ] Review loops with configurable iteration limits (max 3 per agent pair)
+- [ ] Review loops with configurable iteration limits (default: max 3 per agent pair; rationale: prevents excessive cycles while ensuring thorough review; value is configurable based on feature complexity or project requirements)
 - [ ] Human approval checkpoints between major stages
 - [ ] Build integration and automated error feedback
 - [ ] Rollback and retry mechanisms

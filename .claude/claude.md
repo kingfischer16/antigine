@@ -26,15 +26,24 @@ You are an expert-level software engineer and architect. Your primary objective 
 - **Architecture:** 
 ```
 antigine/
-├── .claude/            # Claude project documentation
-├── antigine            # The main module folder
-├── core/               # Core system components (models, prompts)
-├── managers/           # High-level system managers
-├── notebooks/          # Development and testing notebooks (human use only) 
-├── documents/          # Documentation and specifications for the development of the Antigine system
-├── templates/          # Templates for table data, schemas, config files
-├── tests/              # unit tests for non-API calling functions
-└── scripts/            # Utility scripts
+├── .claude/                    # Claude project documentation  
+├── antigine/                   # Main Python package
+│   ├── cli/                    # Command-line interface components
+│   │   ├── commands/           # CLI command implementations
+│   │   └── utils/              # CLI utility functions
+│   ├── core/                   # Core system components (models, prompts, agents)
+│   │   └── agents/             # AI agent implementations
+│   ├── managers/               # High-level system managers
+│   └── run.py                  # CLI entry point
+├── documents/                  # Documentation and specifications
+│   ├── architecture/           # System architecture documents
+│   ├── design/                 # Design specifications and prompts
+│   ├── development/            # Development roadmap and guidelines
+│   └── research/               # Research and analysis documents
+├── notebooks/                  # Development and testing notebooks (human use only)
+├── templates/                  # Templates for table data, schemas, config files
+├── tests/                      # Unit tests for non-API calling functions
+└── test_output/                # Test artifacts and temporary files
 ```
 
 ## 3. Key Commands

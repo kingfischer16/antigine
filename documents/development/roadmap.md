@@ -141,10 +141,103 @@ This document outlines the development plan for building the complete Antigine m
 
 ---
 
-## Phase 3: Core Agent Development 🔄 IN PROGRESS
+## Phase 2.5: Feature Request Management System 🔄 NEXT PRIORITY
+**Goal**: Implement intelligent feature request validation and semantic relationship detection
+
+**Current Priority**: Feature Request Agent with semantic search capabilities for database text
+
+### 📦 Core Components
+
+#### **Feature Request Agent** (`core/agents/feature_request_agent.py`)
+- Interactive feature description validation and completion
+- GDD context extraction when available (full document passed as context)
+- Minimum viable information verification for architecture phase
+- User clarification sessions for incomplete requests
+
+#### **Semantic Search Engine** (`core/semantic_search.py`)
+- Vector embedding generation for database text fields:
+  - Feature request descriptions
+  - Technical architecture descriptions  
+  - Implementation plan descriptions
+- Similarity search with configurable thresholds
+- Local embeddings (sentence-transformers) with API upgrade path
+
+#### **Feature Relationship Analyzer** (`core/feature_analyzer.py`)
+- Semantic comparison against existing features in database
+- Relationship classification: `duplicate`, `supersedes`, `builds_on`, `fixes`, `conflicts_with`
+- User confirmation workflow for relationship decisions
+- Dependency graph validation
+
+#### **Enhanced Database Schema** (`core/database.py`)
+```sql
+-- New tables for feature relationships and semantic search
+CREATE TABLE feature_relationships (
+    id INTEGER PRIMARY KEY,
+    feature_id INTEGER,
+    related_feature_id INTEGER,
+    relationship_type TEXT,
+    confidence_score REAL,
+    created_at TIMESTAMP
+);
+
+CREATE TABLE feature_vectors (
+    feature_id INTEGER PRIMARY KEY,
+    embedding BLOB,
+    embedding_model TEXT,  
+    created_at TIMESTAMP
+);
+```
+
+#### **Enhanced CLI Interface** (`antigine/cli/commands/feature.py`)
+```bash
+antigine feature new                    # Interactive feature request creation
+antigine feature new --description "..." # Direct description input  
+antigine feature relationships <id>     # Show feature relationships
+antigine feature similar <id>          # Find similar existing features
+```
+
+### 📦 Implementation Flow
+
+**Step 1: Feature Request Validation**
+1. User provides description via `antigine feature new`
+2. Feature Request Agent validates completeness:
+   - Clear functional requirements
+   - User interaction patterns (if applicable)  
+   - Technical constraints mentioned
+   - Success criteria defined
+3. Extract relevant GDD context if available (full document)
+4. Interactive clarification if insufficient information
+
+**Step 2: Semantic Analysis**  
+1. Generate vector embedding for validated feature request
+2. Search existing feature vectors in database for similarity
+3. Present similar features with confidence scores
+4. User confirms relationships or marks as unique
+
+**Step 3: Database Storage**
+1. Store feature request with metadata
+2. Store vector embedding  
+3. Record confirmed relationships
+4. Update dependency graph
+
+### 🔗 Dependencies
+- Requires: Phase 2B (Tech Stack Database System) complete ✅
+- Requires: GDD Creator Workflow complete ✅
+- Enables: Phase 3 (Feature Implementation Workflow)
+
+### 🎯 Success Criteria
+- [ ] Feature requests validated for completeness before pipeline entry
+- [ ] Semantic search identifies similar/duplicate features in database text
+- [ ] User can define feature relationships with confidence scores
+- [ ] Enhanced database schema supports relationship tracking
+- [ ] CLI provides intuitive feature request creation workflow
+
+---
+
+## Phase 3: Core Agent Development 🔄 PLANNED
 **Goal**: Implement the core AI workflows with tech stack-aware capabilities
 
-**Current Priority**: Feature Implementation Workflow (5-Agent Pipeline)
+**Current Priority**: Feature Implementation Workflow (5-Agent Pipeline) - depends on Phase 2.5
 
 ### 📦 Simplified Architecture Overview
 

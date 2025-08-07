@@ -114,3 +114,60 @@ if not (os.getenv("TESTING") == "1" or os.getenv("CI") == "true" or os.getenv("P
     except Exception:
         # Initialization failed, models remain None which is fine for testing
         pass
+
+
+class LLMManager:
+    """Simple wrapper for LLM operations."""
+    
+    def __init__(self, model_type: str = "lite"):
+        """
+        Initialize LLM manager.
+        
+        Args:
+            model_type (str): Type of model to use ("lite", "standard", "pro")
+        """
+        self.model_type = model_type
+        
+    def generate_response(
+        self, 
+        prompt: str, 
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None
+    ) -> str:
+        """
+        Generate a response using the configured model.
+        
+        Args:
+            prompt (str): Input prompt
+            temperature (float, optional): Override default temperature
+            max_tokens (int, optional): Maximum tokens (not used with Gemini)
+            
+        Returns:
+            str: Generated response
+        """
+        if self.model_type == "lite":
+            model = get_lite_model()
+        elif self.model_type == "pro":
+            model = get_pro_model()
+        else:
+            model = get_standard_model()
+            
+        if not model:
+            raise RuntimeError("Failed to initialize LLM model")
+            
+        if temperature is not None:
+            # Create a new model instance with custom temperature
+            # Get the model name from the original instance
+            original_model_name = getattr(model, 'model', 'gemini-2.5-flash')
+            model = model.__class__(
+                model=original_model_name,
+                temperature=temperature,
+                google_api_key=os.getenv("GOOGLE_API_KEY")
+            )
+            
+        response = model.invoke(prompt)
+        # Ensure we return a string regardless of response type
+        if hasattr(response, 'content'):
+            content = response.content
+            return str(content) if content is not None else ""
+        return str(response)

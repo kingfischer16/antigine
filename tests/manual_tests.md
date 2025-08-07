@@ -18,6 +18,7 @@ cd "D:\GitProjects\antigine"
 - [Configuration Management](#configuration-management)
 - [Feature Management](#feature-management)
 - [GDD Creator Agent](#gdd-creator-agent)
+- [Feature Request Workflow](#feature-request-workflow)
 - [Error Handling](#error-handling)
 - [Cross-Platform Compatibility](#cross-platform-compatibility)
 
@@ -880,6 +881,169 @@ Recommendations:
 - Expand core concept with more specific mechanics
 - Add detailed audio design requirements
 - Include performance targets and optimization strategy
+```
+
+---
+
+## Feature Request Workflow
+
+### Test 9.1: Basic Feature Request Creation
+**Description:** Test the complete feature request workflow with LLM validation and semantic search
+**Setup:** Use directory from Test 2.1 (Love2D project)
+**Command:**
+```bash
+python -c "from antigine.run import main; main(['feature', 'new'])"
+```
+**Interactive Steps:**
+1. Enter feature title: "Player Movement System"
+2. Enter feature description: "Implement WASD movement controls for the player character with smooth acceleration and deceleration. Player should move at 200 pixels per second and respond instantly to input changes."
+3. Select feature type: 1 (new_feature)
+4. Wait for LLM validation and semantic search
+5. Review validation results
+6. Choose to proceed with feature creation
+
+**Expected Output:**
+```
+Enter feature title: Player Movement System
+Enter feature description (press Enter twice to finish):
+Implement WASD movement controls for the player character with smooth acceleration and deceleration. Player should move at 200 pixels per second and respond instantly to input changes.
+
+Select feature type:
+  1. new_feature - Add new functionality
+  2. bug_fix - Fix existing bug
+  3. refactor - Improve code structure
+  4. enhancement - Improve existing feature
+Enter choice (1-4): 1
+
+Processing feature request...
+
+Feature Request Validation Results:
+  Confidence Score: 0.85
+
+[OK] Feature request created successfully!
+Feature ID: TG-001
+Title: Player Movement System
+Type: new_feature
+Status: requested
+
+Next steps:
+  - View details: antigine feature show TG-001
+  - List all features: antigine feature list
+```
+
+### Test 9.2: Feature Request with Validation Issues
+**Description:** Test LLM validation when feature request is incomplete
+**Setup:** Use directory from Test 2.1
+**Command:**
+```bash
+python -c "from antigine.run import main; main(['feature', 'new'])"
+```
+**Interactive Steps:**
+1. Enter feature title: "Add sound"
+2. Enter feature description: "Need sounds in the game"
+3. Select feature type: 1 (new_feature)
+4. System should detect validation issues and show suggestions
+
+**Expected Output:**
+```
+Enter feature title: Add sound
+Enter feature description (press Enter twice to finish):
+Need sounds in the game
+
+Select feature type:
+  1. new_feature - Add new functionality
+  2. bug_fix - Fix existing bug
+  3. refactor - Improve code structure
+  4. enhancement - Improve existing feature
+Enter choice (1-4): 1
+
+Processing feature request...
+
+[ERROR] Feature creation failed: Validation failed - insufficient detail
+
+Validation issues identified:
+  - Description is too vague and lacks specific requirements
+  - Missing information about what types of sounds are needed
+  - No success criteria or implementation details provided
+
+Suggestions for improvement:
+  - Specify what types of sounds (background music, sound effects, UI sounds)
+  - Define when and how sounds should be triggered
+  - Include audio format and quality requirements
+```
+
+### Test 9.3: Duplicate Feature Detection
+**Description:** Test semantic search detection of similar features
+**Setup:** Use directory from Test 9.1 (should have Player Movement System feature)
+**Command:**
+```bash
+python -c "from antigine.run import main; main(['feature', 'new'])"
+```
+**Interactive Steps:**
+1. Enter feature title: "Character Movement Controls"
+2. Enter feature description: "Create movement system for the player using keyboard input. The character should move smoothly across the screen with WASD keys."
+3. Select feature type: 1 (new_feature)
+4. System should detect similarity with existing feature
+5. Choose option 3 to show detailed comparison
+6. Choose option 2 to cancel and revise
+
+**Expected Output:**
+```
+Enter feature title: Character Movement Controls
+Enter feature description (press Enter twice to finish):
+Create movement system for the player using keyboard input. The character should move smoothly across the screen with WASD keys.
+
+Select feature type:
+  1. new_feature - Add new functionality
+  2. bug_fix - Fix existing bug
+  3. refactor - Improve code structure
+  4. enhancement - Improve existing feature
+Enter choice (1-4): 1
+
+Processing feature request...
+
+Feature Request Validation Results:
+  Confidence Score: 0.82
+
+Found 1 potentially related features:
+
+1. Player Movement System (ID: TG-001)
+   Relationship: duplicate
+   Confidence: 0.92
+   Description: Implement WASD movement controls for the player character with smooth acceleration...
+   ⚠️  HIGH CONFIDENCE DUPLICATE
+
+Options:
+  1. Proceed with feature creation
+  2. Cancel and revise feature
+  3. Show detailed comparison
+Enter choice (1-3): 3
+
+==================================================
+DETAILED FEATURE COMPARISONS
+==================================================
+
+YOUR FEATURE:
+Title: Character Movement Controls
+Type: new_feature
+Description: Create movement system for the player using keyboard input. The character should move smoothly across the screen with WASD keys.
+
+----------------------------------------
+SIMILAR FEATURE #1:
+ID: TG-001
+Title: Player Movement System
+Relationship: duplicate
+Confidence: 0.92
+Description: Implement WASD movement controls for the player character with smooth acceleration and deceleration. Player should move at 200 pixels per second and respond instantly to input changes.
+==================================================
+Press Enter to return to options...
+
+Options:
+  1. Proceed with feature creation
+  2. Cancel and revise feature
+  3. Show detailed comparison
+Enter choice (1-3): 2
+[INFO] Feature creation cancelled. Please revise and try again.
 ```
 
 ---

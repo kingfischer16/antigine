@@ -57,18 +57,6 @@ CREATE TABLE IF NOT EXISTS feature_relationships (
     FOREIGN KEY (related_feature_id) REFERENCES features (feature_id)
 );
 
--- Feature vectors table (for semantic search)
-CREATE TABLE IF NOT EXISTS feature_vectors (
-    feature_id TEXT PRIMARY KEY,
-    document_type TEXT NOT NULL CHECK (document_type IN (
-        'feature_request', 'technical_architecture', 'implementation_plan'
-    )),
-    embedding BLOB NOT NULL,
-    embedding_model TEXT NOT NULL,
-    created_at TEXT NOT NULL,
-    FOREIGN KEY (feature_id) REFERENCES features (feature_id)
-);
-
 -- Documents table (for artifacts)
 CREATE TABLE IF NOT EXISTS feature_documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -91,8 +79,6 @@ CREATE INDEX IF NOT EXISTS idx_feature_relations_target_id ON feature_relations(
 CREATE INDEX IF NOT EXISTS idx_feature_relationships_feature_id ON feature_relationships(feature_id);
 CREATE INDEX IF NOT EXISTS idx_feature_relationships_related_id ON feature_relationships(related_feature_id);
 CREATE INDEX IF NOT EXISTS idx_feature_relationships_type ON feature_relationships(relationship_type);
-CREATE INDEX IF NOT EXISTS idx_feature_vectors_feature_id ON feature_vectors(feature_id);
-CREATE INDEX IF NOT EXISTS idx_feature_vectors_document_type ON feature_vectors(document_type);
 CREATE INDEX IF NOT EXISTS idx_feature_documents_feature_id ON feature_documents(feature_id);
 CREATE INDEX IF NOT EXISTS idx_feature_documents_type ON feature_documents(document_type);
 """
@@ -165,7 +151,7 @@ def validate_database_schema(db_path: str) -> bool:
     Returns:
         bool: True if schema is valid, False otherwise.
     """
-    expected_tables = {"features", "feature_relations", "feature_relationships", "feature_vectors", "feature_documents"}
+    expected_tables = {"features", "feature_relations", "feature_relationships", "feature_documents"}
 
     try:
         with get_connection(db_path) as conn:

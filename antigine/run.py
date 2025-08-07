@@ -61,6 +61,13 @@ Examples:
         dest="feature_command", help="Feature operations", metavar="<operation>"
     )
 
+    # Feature new
+    new_parser = feature_subparsers.add_parser("new", help="Create a new feature request")
+    new_parser.add_argument("--description", help="Feature description (interactive prompt if not provided)")
+    new_parser.add_argument("--title", help="Feature title (interactive prompt if not provided)")
+    new_parser.add_argument("--type", choices=["new_feature", "bug_fix", "refactor", "enhancement"], 
+                           help="Feature type (interactive prompt if not provided)")
+
     # Feature list
     list_parser = feature_subparsers.add_parser("list", help="List features")
     list_parser.add_argument(
